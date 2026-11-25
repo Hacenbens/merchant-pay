@@ -5,11 +5,13 @@
     "alerts": "Alertes", "simulator": "Simulateur", "insights": "Analyses", "profile": "Profil", "customers": "Clients", "loyalty": "Fidélité"
   },
   "auth": {
+    "welcome": "Bon retour", "context": "Défi FINOVIA × ENSM × SATIM · données de paiement synthétiques", "showPassword": "Afficher le mot de passe", "hidePassword": "Masquer le mot de passe",
     "title": "Connexion à votre espace marchand", "email": "Adresse e-mail", "password": "Mot de passe",
     "submit": "Se connecter", "error": "E-mail ou mot de passe incorrect",
     "demoHint": "Compte démo : demo@merchantpay.test / demo1234", "logout": "Déconnexion", "throttled": "Trop de tentatives échouées. Patientez 15 minutes avant de réessayer."
   },
   "filters": {
+    "quick": "Périodes rapides",
     "from": "Du", "to": "Au", "granularity": "Granularité", "day": "Jour", "week": "Semaine",
     "month": "Mois", "last7": "7 j", "last30": "30 j", "last90": "90 j"
   },
@@ -495,6 +497,27 @@
         "reverse": "Annulation",
         "adjust": "Ajustement"
       }
+    }
+  },
+  "shell": {
+    "toggleTheme": "Changer de thème",
+    "palette": "Palette de commandes",
+    "paletteHelp": "Pages, période, thème, langue",
+    "search": "Rechercher une page ou une commande…",
+    "noResults": "Aucun résultat.",
+    "pages": "Pages",
+    "period": "Période",
+    "lastDays": "{{n}} derniers jours",
+    "preferences": "Préférences",
+    "theme": {
+      "light": "Thème clair",
+      "dark": "Thème sombre",
+      "system": "Thème du système"
+    },
+    "group": {
+      "operate": "Pilotage",
+      "analyse": "Analyse",
+      "customers": "Clients"
     }
   }
 }

@@ -39,17 +39,17 @@ export function CustomersPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-sm" role="tablist">
+        <div className="inline-flex h-8 items-center rounded-lg bg-muted p-[3px] text-sm" role="tablist">
           {TABS.map((k) => (
             <button key={k} role="tab" aria-selected={tab === k} onClick={() => set({ tab: k })}
-              className={clsx("rounded-md px-3 py-1.5", tab === k ? "bg-brand-700 text-white" : "text-slate-600")}>
+              className={clsx("h-full rounded-md px-3 font-medium transition-all", tab === k ? "bg-background text-foreground shadow-sm dark:bg-input/30" : "text-muted-foreground hover:text-foreground")}>
               {t(`customers.tabs.${k}`)}
             </button>
           ))}
         </div>
-        <label className="flex items-center gap-2 text-sm text-slate-600">
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
           {t("customers.window")}
-          <select className="rounded-lg border border-slate-300 px-2 py-1" value={windowDays}
+          <select className="rounded-lg border border-input px-2 py-1" value={windowDays}
             onChange={(e) => set({ window: e.target.value })}>
             {WINDOWS.map((w) => <option key={w} value={w}>{t("customers.days", { n: w })}</option>)}
           </select>
@@ -76,15 +76,15 @@ export function CustomersPage() {
 function BookBanner({ book }: { book: CustomerBook }) {
   const { t } = useTranslation();
   const c = book.coverage;
-  const tone = book.availability === "available" ? "border-slate-200 bg-white" : "border-sky-200 bg-sky-50";
+  const tone = book.availability === "available" ? "border-border bg-card" : "border-sky-500/20 bg-sky-500/10";
   return (
     <section className={clsx("rounded-xl border p-4 text-sm", tone)}>
       {book.availability !== "available" && (
-        <p className="mb-2 font-medium text-sky-900">
+        <p className="mb-2 font-medium text-sky-800 dark:text-sky-300">
           {t(`customers.availability.${book.availability}`, { n: book.rules.min_customers, have: book.eligible_customers })}
         </p>
       )}
-      <p className="text-slate-600">
+      <p className="text-muted-foreground">
         {t("customers.basis", {
           from: formatDate(book.window.date_from), to: formatDate(book.window.date_to),
           customers: formatNumber(book.eligible_customers),
@@ -92,7 +92,7 @@ function BookBanner({ book }: { book: CustomerBook }) {
           share: formatPct(c.share.value),
         })}
       </p>
-      <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+      <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <Badge tone="warning">{t("customers.synthetic")}</Badge>
         {t("customers.privacy")}
       </p>
@@ -127,7 +127,7 @@ function Overview({ o }: { o: CustomerOverview }) {
       <Card title={t("customers.segmentsTitle")}>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[34rem] text-sm">
-            <thead className="text-start text-xs text-slate-500">
+            <thead className="text-start text-xs text-muted-foreground">
               <tr>
                 <th className="py-1 text-start font-medium">{t("customers.col.segment")}</th>
                 <th className="py-1 text-end font-medium">{t("customers.col.customers")}</th>
@@ -136,23 +136,23 @@ function Overview({ o }: { o: CustomerOverview }) {
                 <th className="py-1 text-end font-medium">{t("customers.col.share")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {o.segments.map((s) => (
                   <tr key={s.segment}>
                     <td className="py-2">
                       <SegmentBadge segment={s.segment} />
-                      <p className="text-xs text-slate-500">{t(`customers.segmentHelp.${s.segment}`, rulesVars(o.book))}</p>
+                      <p className="text-xs text-muted-foreground">{t(`customers.segmentHelp.${s.segment}`, rulesVars(o.book))}</p>
                     </td>
                     <td className="py-2 text-end tabular-nums">{formatNumber(s.customers)}</td>
                     <td className="py-2 text-end tabular-nums">{formatNumber(s.transactions)}</td>
                     <td className="py-2 text-end tabular-nums">{formatMoney(s.accepted_value)}</td>
-                    <td className="py-2 text-end tabular-nums text-slate-500">{formatPct(s.value_share.value)}</td>
+                    <td className="py-2 text-end tabular-nums text-muted-foreground">{formatPct(s.value_share.value)}</td>
                   </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-xs text-slate-500">{t("customers.valueNote")}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{t("customers.valueNote")}</p>
       </Card>
 
       <Card title={t("customers.monthlyTitle")}><MonthlyChart o={o} /></Card>
@@ -187,17 +187,17 @@ function MonthlyChart({ o }: { o: CustomerOverview }) {
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
             <XAxis dataKey="x" reversed={rtl} tick={{ fontSize: 11 }} />
             <YAxis orientation={rtl ? "right" : "left"} allowDecimals={false} tick={{ fontSize: 11 }} width={36} />
             <Tooltip />
             <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="returning" stackId="a" fill="#0f766e" name={t("customers.returning")} />
-            <Bar dataKey="new" stackId="a" fill="#5eead4" name={t("customers.new")} radius={[3, 3, 0, 0]} />
+            <Bar dataKey="returning" stackId="a" fill="var(--color-primary)" name={t("customers.returning")} />
+            <Bar dataKey="new" stackId="a" fill="var(--color-chart-2)" name={t("customers.new")} radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <p className="mt-2 text-xs text-slate-500">{t("customers.monthlyHelp")}</p>
+      <p className="mt-2 text-xs text-muted-foreground">{t("customers.monthlyHelp")}</p>
     </>
   );
 }
@@ -207,7 +207,7 @@ function MethodCard({ book }: { book: CustomerBook }) {
   const r = book.rules;
   return (
     <Card title={t("customers.method.title")}>
-      <ul className="list-disc space-y-1 ps-5 text-xs text-slate-600">
+      <ul className="list-disc space-y-1 ps-5 text-xs text-muted-foreground">
         <li>{t("customers.method.data")}</li>
         <li>{t("customers.method.rfm", { days: r.window_days })}</li>
         <li>{t("customers.method.segments", { ...rulesVars(book), version: r.segments_version })}</li>

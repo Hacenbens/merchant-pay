@@ -1,30 +1,35 @@
-import clsx from "clsx";
+import { MinusIcon, TrendingDownIcon, TrendingUpIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { Change } from "@/api/types";
+import { itemVariants, motion } from "@/components/motion";
 import { formatPct } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
+/** Stat card in the shadcn-fintech style: muted label, large tabular value, change pill. */
 export function KpiCard({ label, value, change, footnote, help }: {
   label: string; value: ReactNode; change?: Change; footnote?: ReactNode; help?: string;
 }) {
   const { t } = useTranslation();
+  const pct = change?.kind === "comparable" ? change.pct ?? 0 : null;
+  const Icon = pct === null ? MinusIcon : pct < 0 ? TrendingDownIcon : TrendingUpIcon;
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm" title={help}>
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">{value}</p>
+    <motion.div variants={itemVariants} title={help}
+      className="flex flex-col gap-2 rounded-xl bg-card p-4 text-card-foreground ring-1 ring-foreground/10">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
       {change && (
-        <p className="mt-1 text-xs text-slate-500">
-          {change.kind === "comparable" ? (
-            <span className={clsx("font-medium", (change.pct ?? 0) < 0 ? "text-rose-600" : "text-emerald-600")}>
-              {formatPct(change.pct, true)}
-            </span>
-          ) : (
-            <span className="font-medium">{t(change.kind === "new_activity" ? "kpi.newActivity" : "kpi.noActivity")}</span>
-          )}{" "}
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <span className={cn("inline-flex h-5 items-center gap-1 rounded-4xl px-2 font-medium",
+            pct === null ? "bg-secondary text-secondary-foreground"
+              : pct < 0 ? "bg-destructive/10 text-destructive" : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400")}>
+            <Icon className="size-3" />
+            {pct === null ? t(change.kind === "new_activity" ? "kpi.newActivity" : "kpi.noActivity") : formatPct(pct, true)}
+          </span>
           {t("kpi.vsPrevious")}
-        </p>
+        </div>
       )}
-      {footnote && <p className="mt-1 text-xs text-slate-500">{footnote}</p>}
-    </div>
+      {footnote && <p className="text-xs text-muted-foreground">{footnote}</p>}
+    </motion.div>
   );
 }

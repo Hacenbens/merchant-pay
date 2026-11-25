@@ -33,7 +33,7 @@ export function CollectionsPage() {
   const [b, setB] = useState(() => previousPeriod(filters.dateFrom, filters.dateTo));
   const q = useCollections({ ...a, ...b });
   const d = q.data;
-  const input = "rounded-lg border border-slate-300 px-2 py-1.5 text-sm";
+  const input = "rounded-lg border border-input px-2 py-1.5 text-sm";
 
   const updateA = (patch: Partial<typeof a>) => {
     const next = { ...a, ...patch };
@@ -45,8 +45,8 @@ export function CollectionsPage() {
     <div className="space-y-4">
       <Card title={t("collections.title")}>
         <div className="grid gap-3 md:grid-cols-2">
-          <fieldset className="rounded-lg border border-slate-200 p-3">
-            <legend className="px-1 text-xs font-semibold uppercase text-brand-700">
+          <fieldset className="rounded-lg border border-border p-3">
+            <legend className="px-1 text-xs font-semibold uppercase text-primary">
               {t("collections.periodA")}
             </legend>
             <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -61,8 +61,8 @@ export function CollectionsPage() {
             </div>
           </fieldset>
 
-          <fieldset className="rounded-lg border border-slate-200 p-3">
-            <legend className="px-1 text-xs font-semibold uppercase text-slate-500">
+          <fieldset className="rounded-lg border border-border p-3">
+            <legend className="px-1 text-xs font-semibold uppercase text-muted-foreground">
               {t("collections.periodB")}
             </legend>
             <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -74,16 +74,16 @@ export function CollectionsPage() {
                 <input type="date" className={input} value={b.bTo} min={b.bFrom}
                   onChange={(e) => e.target.value && setB((prev) => ({ ...prev, bTo: e.target.value }))} />
               </label>
-              <button className="text-xs text-brand-700 hover:underline"
+              <button className="text-xs text-primary hover:underline"
                 onClick={() => setB(previousPeriod(a.aFrom, a.aTo))}>
                 {t("collections.previousB")}
               </button>
             </div>
           </fieldset>
         </div>
-        <p className="mt-3 text-xs text-slate-500">{t("collections.rules")}</p>
+        <p className="mt-3 text-xs text-muted-foreground">{t("collections.rules")}</p>
         {d && (
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-muted-foreground/70">
             {t("collections.comparing", {
               aFrom: formatDate(d.period_a.date_from), aTo: formatDate(d.period_a.date_to),
               bFrom: formatDate(d.period_b.date_from), bTo: formatDate(d.period_b.date_to),
@@ -107,22 +107,22 @@ export function CollectionsPage() {
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {d.by_status.map((row) => (
-              <div key={row.status} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div key={row.status} className="rounded-xl border border-border bg-card p-4 shadow-sm">
                 <div className="flex items-center justify-between gap-2">
                   <StatusBadge status={row.status} />
                   <Delta change={row.amount_change} />
                 </div>
-                <p className="mt-2 text-xl font-semibold tabular-nums text-slate-900">
+                <p className="mt-2 text-xl font-semibold tabular-nums text-foreground">
                   {formatMoney(row.amount_a)}
                 </p>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-muted-foreground">
                   {t("collections.vsB", { amount: formatMoney(row.amount_b) })}
                 </p>
-                <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                   <span>{t("collections.counts", {
                     a: formatNumber(row.count_a), b: formatNumber(row.count_b),
                   })}</span>
-                  <Link className="text-brand-700 hover:underline"
+                  <Link className="text-primary hover:underline"
                     to={`/transactions?status=${row.status}&date_from=${d.period_a.date_from}&date_to=${d.period_a.date_to}`}>
                     {t("dashboard.openLedger")}
                   </Link>
@@ -140,14 +140,14 @@ function Delta({ change }: { change: Change }) {
   const { t } = useTranslation();
   if (change.kind !== "comparable") {
     return (
-      <span className="text-xs text-slate-500">
+      <span className="text-xs text-muted-foreground">
         {t(change.kind === "new_activity" ? "kpi.newActivity" : "kpi.noActivity")}
       </span>
     );
   }
   const negative = (change.pct ?? 0) < 0;
   return (
-    <span className={`text-xs font-medium tabular-nums ${negative ? "text-rose-600" : "text-emerald-600"}`}>
+    <span className={`text-xs font-medium tabular-nums ${negative ? "text-destructive" : "text-emerald-700 dark:text-emerald-400"}`}>
       {formatPct(change.pct, true)}
     </span>
   );

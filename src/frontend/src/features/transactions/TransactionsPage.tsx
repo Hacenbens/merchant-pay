@@ -38,14 +38,14 @@ export function TransactionsPage() {
   const query = useTransactions({ dateFrom, dateTo, status, channel, q, page });
   const pages = query.data ? Math.max(1, Math.ceil(query.data.total / PAGE_SIZE)) : 1;
   const chip = (active: boolean) => clsx("rounded-full border px-2.5 py-1 text-xs",
-    active ? "border-brand-700 bg-brand-700 text-white" : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50");
+    active ? "border-primary bg-primary text-primary-foreground" : "border-input bg-card text-muted-foreground hover:bg-muted/50");
 
   return (
     <div className="space-y-4">
       <Card>
         <div className="flex flex-col gap-3">
           <input type="search" placeholder={t("tx.search")} defaultValue={q}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm md:max-w-sm"
+            className="w-full rounded-lg border border-input px-3 py-2 text-sm md:max-w-sm"
             onChange={(e) => update((p) => (e.target.value ? p.set("q", e.target.value) : p.delete("q")))} />
           <div className="flex flex-wrap gap-2">
             {STATUSES.map((s) => <button key={s} className={chip(status.includes(s))} onClick={() => toggle("status", s)}>{t(`status.${s}`)}</button>)}
@@ -62,12 +62,12 @@ export function TransactionsPage() {
           query.data.items.length === 0 ? <EmptyState>{t("tx.empty")}</EmptyState> : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="text-start text-xs uppercase text-slate-500">
+                <thead className="text-start text-xs uppercase text-muted-foreground">
                   <tr>{["id", "date", "amount", "channel", "status"].map((h) => <th key={h} className="px-2 py-2 text-start font-medium">{t(`tx.${h}`)}</th>)}</tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border">
                   {query.data.items.map((tx) => (
-                    <tr key={tx.transaction_id} tabIndex={0} className="cursor-pointer hover:bg-slate-50 focus:bg-brand-50"
+                    <tr key={tx.transaction_id} tabIndex={0} className="cursor-pointer hover:bg-muted/50 focus:bg-muted"
                       onClick={() => update((p) => p.set("tx", tx.transaction_id), false)}
                       onKeyDown={(e) => e.key === "Enter" && update((p) => p.set("tx", tx.transaction_id), false)}>
                       <td className="px-2 py-2 font-mono text-xs">{tx.transaction_id}</td>
@@ -83,7 +83,7 @@ export function TransactionsPage() {
           )}
         <div className="mt-3 flex items-center justify-between text-sm">
           <Button variant="outline" disabled={page <= 1} onClick={() => update((p) => p.set("page", String(page - 1)), false)}>{t("tx.prev")}</Button>
-          <span className="text-slate-500">{t("tx.page", { page, pages })}</span>
+          <span className="text-muted-foreground">{t("tx.page", { page, pages })}</span>
           <Button variant="outline" disabled={page >= pages} onClick={() => update((p) => p.set("page", String(page + 1)), false)}>{t("tx.next")}</Button>
         </div>
       </Card>

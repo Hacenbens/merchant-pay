@@ -9,7 +9,7 @@ import { formatDate, formatDzd, formatNumber, formatPct, formatProbability } fro
 import { usePulse } from "./api";
 
 const TONE_DOT: Record<PulseItem["tone"], string> = {
-  positive: "bg-emerald-500", negative: "bg-rose-500", neutral: "bg-slate-400", info: "bg-sky-500",
+  positive: "bg-emerald-500", negative: "bg-rose-500", neutral: "bg-muted-foreground/40", info: "bg-sky-500",
 };
 
 /** Display only: each fact arrives as an exact string and is formatted by kind, never recomputed. */
@@ -40,7 +40,7 @@ export function PulseCard() {
           <ul className="space-y-3">
             {q.data.items.map((item) => <PulseLine key={item.code} item={item} />)}
           </ul>
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs text-muted-foreground">
             {t("pulse.footer", {
               from: formatDate(q.data.period.date_from), to: formatDate(q.data.period.date_to),
               prevFrom: formatDate(q.data.previous_period.date_from), prevTo: formatDate(q.data.previous_period.date_to),
@@ -64,8 +64,8 @@ function PulseLine({ item }: { item: PulseItem }) {
     <li className="flex gap-3 text-sm">
       <span aria-hidden className={clsx("mt-1.5 h-2 w-2 shrink-0 rounded-full", TONE_DOT[item.tone])} />
       <div>
-        <p className="font-medium text-slate-800">{t(`pulse.title_${item.code}`)}</p>
-        <p className="text-slate-600">{t(`pulse.body.${item.code}`, opts)}{extra && <> {extra}</>}</p>
+        <p className="font-medium text-foreground">{t(`pulse.title_${item.code}`)}</p>
+        <p className="text-muted-foreground">{t(`pulse.body.${item.code}`, opts)}{extra && <> {extra}</>}</p>
         <NextCheck item={item} />
       </div>
     </li>
@@ -74,7 +74,7 @@ function PulseLine({ item }: { item: PulseItem }) {
 
 function NextCheck({ item }: { item: PulseItem }) {
   const { t } = useTranslation();
-  const cls = "text-xs text-brand-700 hover:underline";
+  const cls = "text-xs text-primary hover:underline";
   if (item.code === "goal_not_set") return <Link className={cls} to="/profile">{t("pulse.next.profile")}</Link>;
   if (!item.evidence) return null;
   return (

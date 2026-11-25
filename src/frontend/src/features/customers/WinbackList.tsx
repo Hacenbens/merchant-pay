@@ -14,15 +14,15 @@ export function WinbackList({ windowDays, onOpen }: { windowDays: number; onOpen
   const q = useReengagement(windowDays, includeHidden);
   return (
     <Card title={t("customers.winback.title")} action={
-      <label className="flex items-center gap-1 text-xs text-slate-600">
+      <label className="flex items-center gap-1 text-xs text-muted-foreground">
         <input type="checkbox" checked={includeHidden} onChange={(e) => setIncludeHidden(e.target.checked)} />
         {t("customers.winback.showHidden", { n: q.data?.hidden_count ?? 0 })}
       </label>
     }>
-      <p className="mb-3 text-sm text-slate-600">{t("customers.winback.intro")}</p>
+      <p className="mb-3 text-sm text-muted-foreground">{t("customers.winback.intro")}</p>
       {q.isPending ? <Spinner /> : q.isError ? <ErrorState onRetry={() => q.refetch()} /> :
         q.data.entries.length === 0 ? <EmptyState>{t("customers.winback.empty")}</EmptyState> : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-border">
             {q.data.entries.map((e) => <Entry key={e.customer.token} e={e} onOpen={onOpen} />)}
           </ul>
         )}
@@ -46,23 +46,23 @@ function Entry({ e, onOpen }: { e: ReengageEntry; onOpen: (token: string) => voi
     <li className="py-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <button className="font-mono text-sm text-brand-700 hover:underline" onClick={() => onOpen(c.token)}>{c.alias}</button>
+          <button className="font-mono text-sm text-primary hover:underline" onClick={() => onOpen(c.token)}>{c.alias}</button>
           <StatusBadge status={c.evidence.status} />
-          {c.high_value && <span className="text-xs text-amber-700">{t("customers.highValue")}</span>}
+          {c.high_value && <span className="text-xs text-amber-700 dark:text-amber-400">{t("customers.highValue")}</span>}
         </div>
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-muted-foreground">
           {t("customers.winback.history", { value: formatMoney(c.monetary), n: c.frequency })}
         </span>
       </div>
       <div className="mt-2 grid gap-3 md:grid-cols-2">
         <Evidence e={c.evidence} />
         <div className="text-sm">
-          <p className="font-medium text-slate-800">{t(`customers.suggestion.${e.suggestion}`)}</p>
-          <p className="text-xs text-slate-600">{t(`customers.suggestionWhy.${e.suggestion}`)}</p>
-          {e.recheck_on && <p className="text-xs text-slate-600">{t("customers.winback.recheck", { date: formatDate(e.recheck_on) })}</p>}
-          <p className="mt-1 text-xs text-slate-500">{t("customers.winback.mayBeWrong")}</p>
+          <p className="font-medium text-foreground">{t(`customers.suggestion.${e.suggestion}`)}</p>
+          <p className="text-xs text-muted-foreground">{t(`customers.suggestionWhy.${e.suggestion}`)}</p>
+          {e.recheck_on && <p className="text-xs text-muted-foreground">{t("customers.winback.recheck", { date: formatDate(e.recheck_on) })}</p>}
+          <p className="mt-1 text-xs text-muted-foreground">{t("customers.winback.mayBeWrong")}</p>
           {e.decision && (
-            <p className="mt-1 text-xs text-slate-700">
+            <p className="mt-1 text-xs text-foreground">
               {t(`customers.decision.${e.decision.decision}`, { date: e.decision.snooze_until ? formatDate(e.decision.snooze_until) : "" })}
             </p>
           )}
@@ -83,7 +83,7 @@ function Entry({ e, onOpen }: { e: ReengageEntry; onOpen: (token: string) => voi
               </Button>
             )}
           </div>
-          {record.isError && <p role="alert" className="mt-1 text-xs text-rose-700">{t("customers.actions.error")}</p>}
+          {record.isError && <p role="alert" className="mt-1 text-xs text-destructive">{t("customers.actions.error")}</p>}
         </div>
       </div>
     </li>

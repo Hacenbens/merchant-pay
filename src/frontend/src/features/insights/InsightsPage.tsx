@@ -22,8 +22,8 @@ export function InsightsPage() {
   return (
     <div className="space-y-4">
       <Card title={t("insights.title")}>
-        <p className="text-sm text-slate-600">{t("insights.intro")}</p>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="text-sm text-muted-foreground">{t("insights.intro")}</p>
+        <p className="mt-2 text-xs text-muted-foreground">
           {t("insights.periods", {
             from: formatDate(r.period.date_from), to: formatDate(r.period.date_to),
             prevFrom: formatDate(r.previous_period.date_from), prevTo: formatDate(r.previous_period.date_to),
@@ -37,11 +37,11 @@ export function InsightsPage() {
       </Card>
 
       <Card title={t("insights.byChannel")}>
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-border">
           {r.channels.map((s) => (
             <li key={s.channel} className="py-3">
               <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-sm font-medium text-slate-800">{t(`channel.${s.channel}`)}</span>
+                <span className="text-sm font-medium text-foreground">{t(`channel.${s.channel}`)}</span>
                 <VerdictBadge verdict={s.verdict} />
               </div>
               <SignalSummary s={s} radar={r} compact />
@@ -52,7 +52,7 @@ export function InsightsPage() {
       </Card>
 
       <Card title={t("insights.method.title")}>
-        <ul className="list-disc space-y-1 ps-5 text-xs text-slate-600">
+        <ul className="list-disc space-y-1 ps-5 text-xs text-muted-foreground">
           <li>{t("insights.method.model", { a: r.method.prior_alpha, b: r.method.prior_beta,
             mean: formatProbability(r.method.prior_alpha / (r.method.prior_alpha + r.method.prior_beta)) })}</li>
           <li>{t("insights.method.denominator")}</li>
@@ -90,13 +90,13 @@ function SignalSummary({ s, radar, compact = false }: { s: DeclineSignal; radar:
         <Stat label={t("insights.estimate")} value={<Estimate e={s.current} />} />
         <Stat label={t("insights.previous")} value={<Estimate e={s.previous} />} />
       </dl>
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-muted-foreground">
         {s.verdict === "insufficient_data"
           ? t("insights.insufficient", { n: radar.method.min_attempts,
             cur: s.current.observed.denominator, prev: s.previous.observed.denominator })
           : t("insights.probabilityHigher", { p: formatProbability(s.probability_higher) })}
         {" · "}
-        <Link className="text-brand-700 hover:underline" to={`/transactions?${ledger}`}>
+        <Link className="text-primary hover:underline" to={`/transactions?${ledger}`}>
           {t("insights.openDeclined", { n: s.current.observed.numerator })}
         </Link>
       </p>
@@ -107,8 +107,8 @@ function SignalSummary({ s, radar, compact = false }: { s: DeclineSignal; radar:
 function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
-      <dt className="text-xs text-slate-500">{label}</dt>
-      <dd className="tabular-nums text-slate-800">{value}</dd>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="tabular-nums text-foreground">{value}</dd>
     </div>
   );
 }
@@ -116,14 +116,14 @@ function Stat({ label, value }: { label: string; value: ReactNode }) {
 function Observed({ e }: { e: DeclineEstimate }) {
   const { t } = useTranslation();
   return <>{e.observed.value === null ? "—" : formatProbability(e.observed.value)}{" "}
-    <span className="text-xs text-slate-500">
+    <span className="text-xs text-muted-foreground">
       ({t("kpi.basis", { num: formatNumber(e.observed.numerator), den: formatNumber(e.observed.denominator) })})
     </span></>;
 }
 
 function Estimate({ e }: { e: DeclineEstimate }) {
   return <>{formatProbability(e.mean)}{" "}
-    <span className="text-xs text-slate-500">[{formatProbability(e.lower)} – {formatProbability(e.upper)}]</span></>;
+    <span className="text-xs text-muted-foreground">[{formatProbability(e.lower)} – {formatProbability(e.upper)}]</span></>;
 }
 
 /** Previous (grey) vs current (amber) 90% credible intervals on one shared scale; dots = posterior means. */
@@ -132,8 +132,8 @@ function IntervalBar({ s, max }: { s: DeclineSignal; max: number }) {
   const pos = (v: number) => `${Math.min(100, (v / max) * 100)}%`;
   const row = (e: DeclineEstimate, color: string, label: string) => (
     <div className="flex items-center gap-2">
-      <span className="w-20 shrink-0 text-[11px] text-slate-500">{label}</span>
-      <div className="relative h-3 flex-1 rounded bg-slate-100" aria-hidden>
+      <span className="w-20 shrink-0 text-[11px] text-muted-foreground">{label}</span>
+      <div className="relative h-3 flex-1 rounded bg-muted" aria-hidden>
         <div className={`absolute top-0.5 h-2 rounded ${color} opacity-60`}
           style={{ insetInlineStart: pos(e.lower), width: `calc(${pos(e.upper)} - ${pos(e.lower)})` }} />
         <div className={`absolute top-0 h-3 w-1 rounded ${color}`} style={{ insetInlineStart: pos(e.mean) }} />
@@ -143,9 +143,9 @@ function IntervalBar({ s, max }: { s: DeclineSignal; max: number }) {
   return (
     <div className="mt-2 space-y-1" role="img"
       aria-label={t("insights.intervalAria", { cur: formatProbability(s.current.mean), prev: formatProbability(s.previous.mean) })}>
-      {row(s.previous, "bg-slate-400", t("insights.previousShort"))}
+      {row(s.previous, "bg-muted-foreground/40", t("insights.previousShort"))}
       {row(s.current, "bg-amber-500", t("insights.currentShort"))}
-      <div className="flex justify-between ps-22 text-[10px] text-slate-400">
+      <div className="flex justify-between ps-22 text-[10px] text-muted-foreground/70">
         <span>0 %</span><span>{formatProbability(max)}</span>
       </div>
     </div>

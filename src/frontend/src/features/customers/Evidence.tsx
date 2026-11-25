@@ -21,7 +21,7 @@ export function Evidence({ e }: { e: ReturnEvidence }) {
   const b = e.baseline;
   const th = e.thresholds;
   return (
-    <div className="space-y-1 text-xs text-slate-600">
+    <div className="space-y-1 text-xs text-muted-foreground">
       <p>
         {t("customers.evidence.gap", { last: formatDate(e.last_purchase), gap: e.gap_days, visits: e.purchase_days })}
       </p>
@@ -38,7 +38,7 @@ export function Evidence({ e }: { e: ReturnEvidence }) {
         <p>{t("customers.evidence.thresholds", { watch: days(th.watch_days), risk: days(th.at_risk_days),
           lapsed: days(th.lapsed_days) })}</p>
       )}
-      <p className="text-slate-400">{t("customers.evidence.rule", { version: e.rule_version })}</p>
+      <p className="text-muted-foreground/70">{t("customers.evidence.rule", { version: e.rule_version })}</p>
     </div>
   );
 }

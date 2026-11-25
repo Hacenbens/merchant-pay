@@ -56,35 +56,35 @@ export function SimulatorPage() {
           <Button variant="ghost" className="text-xs" onClick={reset}>{t("simulator.reset")}</Button>
         }
       >
-        <p className="mb-4 text-sm text-slate-500">{t("simulator.intro")}</p>
+        <p className="mb-4 text-sm text-muted-foreground">{t("simulator.intro")}</p>
 
         <label className="block text-sm">
-          <span className="flex items-center justify-between font-medium text-slate-700">
+          <span className="flex items-center justify-between font-medium text-foreground">
             <span>{t("simulator.volume")}</span>
-            <span className="tabular-nums text-brand-700">{formatPct(volume / 100, true)}</span>
+            <span className="tabular-nums text-primary">{formatPct(volume / 100, true)}</span>
           </span>
           <input type="range" min={-20} max={60} step={5} value={volume}
             aria-label={t("simulator.volume")}
             onChange={(e) => setVolume(Number(e.target.value))}
-            className="mt-2 w-full accent-brand-700" />
+            className="mt-2 w-full accent-primary" />
         </label>
 
-        <details className="mt-4 rounded-lg border border-slate-200 p-3">
-          <summary className="cursor-pointer text-sm font-medium text-slate-700">
+        <details className="mt-4 rounded-lg border border-border p-3">
+          <summary className="cursor-pointer text-sm font-medium text-foreground">
             {t("simulator.advanced")}
           </summary>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <label className="text-sm text-slate-600">
+            <label className="text-sm text-muted-foreground">
               {t("simulator.acceptance")}
               <input type="number" min={-10} max={20} step={1} value={acceptance}
                 onChange={(e) => setAcceptance(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1.5 tabular-nums" />
+                className="mt-1 w-full rounded-lg border border-input px-2 py-1.5 tabular-nums" />
             </label>
-            <label className="text-sm text-slate-600">
+            <label className="text-sm text-muted-foreground">
               {t("simulator.ticket")}
               <input type="number" min={-20} max={20} step={1} value={ticket}
                 onChange={(e) => setTicket(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1.5 tabular-nums" />
+                className="mt-1 w-full rounded-lg border border-input px-2 py-1.5 tabular-nums" />
             </label>
           </div>
         </details>
@@ -93,14 +93,14 @@ export function SimulatorPage() {
           <Button onClick={() => calculate()} disabled={run.isPending}>
             {run.isPending ? t("simulator.running") : t("simulator.run")}
           </Button>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-muted-foreground">
             {t("simulator.baselineHint", {
               from: formatDate(filters.dateFrom),
               to: formatDate(filters.dateTo),
             })}
           </span>
         </div>
-        {run.isError && <p className="mt-2 text-sm text-rose-700">{t("simulator.error")}</p>}
+        {run.isError && <p className="mt-2 text-sm text-destructive">{t("simulator.error")}</p>}
       </Card>
 
       {run.isPending && !run.data ? <Spinner /> : run.isError ? (
@@ -144,7 +144,7 @@ function Result({ r }: { r: Simulation }) {
           {r.monthly_goal && <Row label={t("simulator.goal")} value={formatMoney(r.monthly_goal)} />}
           {r.goal_gap && <Row label={t("simulator.goalGap")} value={formatMoney(r.goal_gap)} />}
         </dl>
-        <p className="mt-3 text-xs text-slate-500">{t("simulator.notForecast")}</p>
+        <p className="mt-3 text-xs text-muted-foreground">{t("simulator.notForecast")}</p>
       </Card>
     </div>
   );
@@ -152,10 +152,10 @@ function Result({ r }: { r: Simulation }) {
 
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-xl font-semibold tabular-nums text-slate-900">{value}</p>
-      {hint && <p className="mt-1 text-xs tabular-nums text-slate-500">{hint}</p>}
+    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{value}</p>
+      {hint && <p className="mt-1 text-xs tabular-nums text-muted-foreground">{hint}</p>}
     </div>
   );
 }
@@ -163,8 +163,8 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs text-slate-500">{label}</dt>
-      <dd className="tabular-nums text-slate-800">{value}</dd>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="tabular-nums text-foreground">{value}</dd>
     </div>
   );
 }

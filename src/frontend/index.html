@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="/favicon.svg" />
     <title>Merchant Pay</title>
+    <script>
+      // apply the saved/system theme before first paint (no flash)
+      try {
+        const t = localStorage.getItem("mp-theme") || "system";
+        const dark = t === "dark" || (t === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

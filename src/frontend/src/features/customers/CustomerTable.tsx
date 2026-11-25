@@ -19,7 +19,7 @@ export function CustomerTable({ windowDays, onOpen }: { windowDays: number; onOp
   const [page, setPage] = useState(1);
   const q = useCustomers({ windowDays, segment: segment || undefined, status: status || undefined,
     highValue: highValue || undefined, page });
-  const select = "rounded-lg border border-slate-300 px-2 py-1 text-sm";
+  const select = "rounded-lg border border-input px-2 py-1 text-sm";
 
   return (
     <Card title={t("customers.tableTitle")}>
@@ -34,7 +34,7 @@ export function CustomerTable({ windowDays, onOpen }: { windowDays: number; onOp
           <option value="">{t("customers.allStatuses")}</option>
           {STATUSES.map((s) => <option key={s} value={s}>{t(`customers.status.${s}`)}</option>)}
         </select>
-        <label className="flex items-center gap-1 text-slate-600">
+        <label className="flex items-center gap-1 text-muted-foreground">
           <input type="checkbox" checked={highValue} onChange={(e) => { setHighValue(e.target.checked); setPage(1); }} />
           {t("customers.highValueOnly")}
         </label>
@@ -45,7 +45,7 @@ export function CustomerTable({ windowDays, onOpen }: { windowDays: number; onOp
           <>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[44rem] text-sm">
-                <thead className="text-xs text-slate-500">
+                <thead className="text-xs text-muted-foreground">
                   <tr>
                     <th className="py-1 text-start font-medium">{t("customers.col.customer")}</th>
                     <th className="py-1 text-start font-medium">{t("customers.col.segment")}</th>
@@ -56,27 +56,27 @@ export function CustomerTable({ windowDays, onOpen }: { windowDays: number; onOp
                     <th className="py-1 text-end font-medium">{t("customers.col.last")}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border">
                   {q.data.items.map((p) => (
                     <tr key={p.token}>
                       <td className="py-2">
-                        <button className="font-mono text-brand-700 hover:underline" onClick={() => onOpen(p.token)}>
+                        <button className="font-mono text-primary hover:underline" onClick={() => onOpen(p.token)}>
                           {p.alias}
                         </button>
-                        {p.high_value && <span className="ms-2 text-xs text-amber-700">{t("customers.highValue")}</span>}
+                        {p.high_value && <span className="ms-2 text-xs text-amber-700 dark:text-amber-400">{t("customers.highValue")}</span>}
                       </td>
                       <td className="py-2"><SegmentBadge segment={p.segment} /></td>
                       <td className="py-2"><StatusBadge status={p.evidence.status} /></td>
                       <td className="py-2 text-end tabular-nums">{t("customers.daysShort", { n: p.recency_days })}</td>
                       <td className="py-2 text-end tabular-nums">{formatNumber(p.frequency)}</td>
                       <td className="py-2 text-end tabular-nums">{formatMoney(p.monetary)}</td>
-                      <td className="py-2 text-end text-slate-500">{formatDate(p.last_purchase)}</td>
+                      <td className="py-2 text-end text-muted-foreground">{formatDate(p.last_purchase)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+            <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
               <span>{t("customers.pageInfo", { total: q.data.total, page: q.data.page,
                 pages: Math.max(1, Math.ceil(q.data.total / q.data.size)) })}</span>
               <span className="flex gap-2">

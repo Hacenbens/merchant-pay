@@ -5,11 +5,13 @@
     "alerts": "التنبيهات", "simulator": "المحاكي", "insights": "التحليلات", "profile": "الملف التجاري", "customers": "الزبائن", "loyalty": "الوفاء"
   },
   "auth": {
+    "welcome": "مرحبًا بعودتك", "context": "تحدي FINOVIA × ENSM × SATIM · بيانات دفع اصطناعية", "showPassword": "إظهار كلمة المرور", "hidePassword": "إخفاء كلمة المرور",
     "title": "الدخول إلى فضاء التاجر", "email": "البريد الإلكتروني", "password": "كلمة المرور",
     "submit": "تسجيل الدخول", "error": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
     "demoHint": "حساب تجريبي: demo@merchantpay.test / demo1234", "logout": "تسجيل الخروج", "throttled": "محاولات فاشلة كثيرة. انتظر 15 دقيقة قبل إعادة المحاولة."
   },
   "filters": {
+    "quick": "فترات سريعة",
     "from": "من", "to": "إلى", "granularity": "التجميع", "day": "يوم", "week": "أسبوع",
     "month": "شهر", "last7": "7 أيام", "last30": "30 يومًا", "last90": "90 يومًا"
   },
@@ -495,6 +497,27 @@
         "reverse": "إلغاء",
         "adjust": "تعديل"
       }
+    }
+  },
+  "shell": {
+    "toggleTheme": "تغيير المظهر",
+    "palette": "لوحة الأوامر",
+    "paletteHelp": "الصفحات، الفترة، المظهر، اللغة",
+    "search": "ابحث عن صفحة أو أمر…",
+    "noResults": "لا نتائج.",
+    "pages": "الصفحات",
+    "period": "الفترة",
+    "lastDays": "آخر {{n}} يومًا",
+    "preferences": "التفضيلات",
+    "theme": {
+      "light": "المظهر الفاتح",
+      "dark": "المظهر الداكن",
+      "system": "مظهر النظام"
+    },
+    "group": {
+      "operate": "التسيير",
+      "analyse": "التحليل",
+      "customers": "الزبائن"
     }
   }
 }

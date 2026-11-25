@@ -63,27 +63,27 @@ function ProfileForm({ me }: { me: Me }) {
   };
 
   const serverError = save.error instanceof ApiError ? save.error : null;
-  const field = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-600 focus:outline-none disabled:bg-slate-50";
+  const field = "w-full rounded-lg border border-input px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:bg-muted/50";
 
   return (
     <div className="max-w-2xl space-y-4">
       <Card title={t("profile.title")}>
-        <dl className="mb-4 grid grid-cols-2 gap-2 text-xs text-slate-500">
-          <div><dt>{t("profile.merchantId")}</dt><dd className="font-mono text-slate-800">{m.merchant_id}</dd></div>
-          <div><dt>{t("profile.timezone")}</dt><dd className="text-slate-800">{m.timezone}</dd></div>
+        <dl className="mb-4 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+          <div><dt>{t("profile.merchantId")}</dt><dd className="font-mono text-foreground">{m.merchant_id}</dd></div>
+          <div><dt>{t("profile.timezone")}</dt><dd className="text-foreground">{m.timezone}</dd></div>
         </dl>
-        {readOnly && <p className="mb-3 rounded-lg bg-sky-50 p-2 text-xs text-sky-800">{t("profile.readOnly")}</p>}
+        {readOnly && <p className="mb-3 rounded-lg bg-sky-500/10 p-2 text-xs text-sky-800 dark:text-sky-300">{t("profile.readOnly")}</p>}
 
         <form onSubmit={submit} className="space-y-4" noValidate>
           <fieldset disabled={readOnly || save.isPending} className="space-y-4">
             <label className="block text-sm">
-              <span className="mb-1 block font-medium text-slate-700">{t("profile.displayName")}</span>
+              <span className="mb-1 block font-medium text-foreground">{t("profile.displayName")}</span>
               <input className={field} value={name} maxLength={200} required
                 onChange={(e) => setName(e.target.value)} />
             </label>
 
             <label className="block text-sm">
-              <span className="mb-1 block font-medium text-slate-700">{t("profile.category")}</span>
+              <span className="mb-1 block font-medium text-foreground">{t("profile.category")}</span>
               <input className={field} value={category} maxLength={100} list="merchant-categories"
                 onChange={(e) => setCategory(e.target.value)} />
               <datalist id="merchant-categories">
@@ -92,11 +92,11 @@ function ProfileForm({ me }: { me: Me }) {
             </label>
 
             <fieldset>
-              <legend className="mb-1 text-sm font-medium text-slate-700">{t("profile.operatingDays")}</legend>
+              <legend className="mb-1 text-sm font-medium text-foreground">{t("profile.operatingDays")}</legend>
               <div className="flex flex-wrap gap-2">
                 {DAYS.map((d) => (
                   <label key={d} className={`cursor-pointer rounded-lg border px-3 py-1.5 text-sm ${days.has(d)
-                    ? "border-brand-600 bg-brand-50 text-brand-900" : "border-slate-300 text-slate-600"}`}>
+                    ? "border-primary bg-muted text-foreground" : "border-input text-muted-foreground"}`}>
                     <input type="checkbox" className="sr-only" checked={days.has(d)} onChange={() => toggle(d)} />
                     {formatWeekday(ISO_WEEKDAY[d], "short")}
                   </label>
@@ -105,18 +105,18 @@ function ProfileForm({ me }: { me: Me }) {
             </fieldset>
 
             <label className="block text-sm">
-              <span className="mb-1 block font-medium text-slate-700">{t("profile.monthlyGoal")}</span>
+              <span className="mb-1 block font-medium text-foreground">{t("profile.monthlyGoal")}</span>
               <input className={field} value={goal} inputMode="decimal" placeholder="1 500 000"
                 onChange={(e) => setGoal(e.target.value)} />
-              <span className="mt-1 block text-xs text-slate-500">{t("profile.monthlyGoalHelp")}</span>
+              <span className="mt-1 block text-xs text-muted-foreground">{t("profile.monthlyGoalHelp")}</span>
             </label>
           </fieldset>
 
           {(formError || serverError) && (
-            <p role="alert" className="text-sm text-rose-700">{formError ?? t("profile.errors.server")}</p>
+            <p role="alert" className="text-sm text-destructive">{formError ?? t("profile.errors.server")}</p>
           )}
           {save.isSuccess && !save.isPending && (
-            <p role="status" className="text-sm text-emerald-700">
+            <p role="status" className="text-sm text-emerald-700 dark:text-emerald-400">
               {t("profile.saved", { goal: formatMoney(save.data.monthly_goal) })}
             </p>
           )}

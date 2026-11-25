@@ -41,14 +41,17 @@ export function useFilters(): Ctx {
 export function PeriodPicker() {
   const { t } = useTranslation();
   const f = useFilters();
-  const input = "rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm";
+  const input = "h-8 rounded-lg border border-input bg-transparent px-2 text-xs text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30";
   return (
-    <div className="flex flex-wrap items-center gap-2 text-sm">
-      {[7, 30, 90].map((n) => (
-        <button key={n} onClick={() => f.setLastDays(n)} className="rounded-lg px-2 py-1 text-slate-600 hover:bg-slate-100">
-          {t(`filters.last${n}`)}
-        </button>
-      ))}
+    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+      <div className="inline-flex h-8 items-center rounded-lg bg-muted p-0.5" role="group" aria-label={t("filters.quick")}>
+        {[7, 30, 90].map((n) => (
+          <button key={n} type="button" onClick={() => f.setLastDays(n)}
+            className="h-7 rounded-md px-2.5 font-medium transition-colors hover:text-foreground">
+            {t(`filters.last${n}`)}
+          </button>
+        ))}
+      </div>
       <label className="flex items-center gap-1">{t("filters.from")}
         <input type="date" className={input} value={f.dateFrom} max={f.dateTo}
           onChange={(e) => e.target.value && f.setFilters({ dateFrom: e.target.value })} />

@@ -6,6 +6,7 @@ import type { Channel, LabScenario, ScenarioLab as Lab, ScenarioLabIn } from "@/
 import { CHANNELS } from "@/api/types";
 import { useFilters } from "@/app/filters";
 import { Button, Card, ErrorState, Spinner } from "@/components/ui";
+import { axisWidth } from "@/components/charts";
 import { isRtl } from "@/i18n";
 import { formatCompactDzd, formatDate, formatMoney, formatNumber, formatPct } from "@/lib/format";
 import { useScenarioLab } from "./api";
@@ -58,23 +59,23 @@ export function ScenarioLab() {
   }, [filters.dateFrom, filters.dateTo, lab]);
 
   const edit = (i: number, patch: Partial<Row>) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
-  const input = "w-full rounded-lg border border-slate-300 px-2 py-1 text-sm tabular-nums";
+  const input = "w-full rounded-lg border border-input px-2 py-1 text-sm tabular-nums";
   const levers: { key: "volume" | "acceptance" | "ticket"; unit: string }[] = [
     { key: "volume", unit: "%" }, { key: "acceptance", unit: t("simulator.lab.pts") }, { key: "ticket", unit: "%" },
   ];
 
   return (
     <Card title={t("simulator.lab.title")}>
-      <p className="mb-3 text-sm text-slate-600">{t("simulator.lab.intro")}</p>
+      <p className="mb-3 text-sm text-muted-foreground">{t("simulator.lab.intro")}</p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[36rem] text-sm">
-          <thead className="text-xs text-slate-500">
+          <thead className="text-xs text-muted-foreground">
             <tr><th />{rows.map((r) => <th key={r.name} className="px-1 text-start font-medium">{t(`simulator.lab.scenario.${r.name}`)}</th>)}</tr>
           </thead>
           <tbody>
             {levers.map((l) => (
               <tr key={l.key}>
-                <th scope="row" className="py-1 pe-2 text-start font-normal text-slate-600">{t(`simulator.lab.lever.${l.key}`)} ({l.unit})</th>
+                <th scope="row" className="py-1 pe-2 text-start font-normal text-muted-foreground">{t(`simulator.lab.lever.${l.key}`)} ({l.unit})</th>
                 {rows.map((r, i) => (
                   <td key={r.name} className="px-1 py-1">
                     <input className={input} inputMode="decimal" value={r[l.key]} aria-label={`${t(`simulator.lab.lever.${l.key}`)} ${r.name}`}
@@ -84,7 +85,7 @@ export function ScenarioLab() {
               </tr>
             ))}
             <tr>
-              <th scope="row" className="py-1 pe-2 text-start align-top font-normal text-slate-600">{t("simulator.lab.lever.mix")}</th>
+              <th scope="row" className="py-1 pe-2 text-start align-top font-normal text-muted-foreground">{t("simulator.lab.lever.mix")}</th>
               {rows.map((r, i) => (
                 <td key={r.name} className="space-y-1 px-1 py-1">
                   <select className={input} value={r.from} aria-label={t("simulator.lab.from")} onChange={(e) => edit(i, { from: e.target.value as Channel | "" })}>
@@ -110,10 +111,10 @@ export function ScenarioLab() {
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button onClick={() => run()} disabled={lab.isPending}>{t("simulator.lab.run")}</Button>
         <Button variant="ghost" onClick={() => { setRows(DEFAULTS); run(DEFAULTS); }}>{t("simulator.reset")}</Button>
-        <span className="text-xs text-slate-500">{t("simulator.lab.examples")}</span>
+        <span className="text-xs text-muted-foreground">{t("simulator.lab.examples")}</span>
       </div>
-      {invalid && <p role="alert" className="mt-2 text-sm text-rose-700">{t("simulator.lab.invalid")}</p>}
-      {lab.isError && <p role="alert" className="mt-2 text-sm text-rose-700">{t("simulator.lab.error", { detail: lab.error.message })}</p>}
+      {invalid && <p role="alert" className="mt-2 text-sm text-destructive">{t("simulator.lab.invalid")}</p>}
+      {lab.isError && <p role="alert" className="mt-2 text-sm text-destructive">{t("simulator.lab.error", { detail: lab.error.message })}</p>}
 
       <div className="mt-4">
         {lab.isPending && !lab.data ? <Spinner /> : lab.isError && !lab.data ? <ErrorState onRetry={() => run()} /> :
@@ -130,18 +131,18 @@ function Results({ lab, selected, onSelect }: { lab: Lab; selected: Name; onSele
   const cell = "py-1.5 text-end tabular-nums";
   return (
     <div className="space-y-4">
-      <p className="text-xs text-slate-500">{t("simulator.lab.baseline", {
+      <p className="text-xs text-muted-foreground">{t("simulator.lab.baseline", {
         from: formatDate(b.period.date_from), to: formatDate(b.period.date_to), collection: formatMoney(b.collection),
         tx: formatNumber(b.initiated), declined: formatMoney(b.declined_amount) })}</p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[36rem] text-sm">
-          <thead className="text-xs text-slate-500">
+          <thead className="text-xs text-muted-foreground">
             <tr>
               <th />
               <th className="text-end font-medium">{t("simulator.lab.current")}</th>
               {lab.scenarios.map((x) => (
                 <th key={x.name} className="text-end font-medium">
-                  <button className={clsx("rounded px-1", x.name === s.name ? "bg-brand-700 text-white" : "text-brand-700 hover:underline")}
+                  <button className={clsx("rounded px-1", x.name === s.name ? "bg-primary text-primary-foreground" : "text-primary hover:underline")}
                     onClick={() => onSelect(x.name as Name)} aria-pressed={x.name === s.name}>
                     {t(`simulator.lab.scenario.${x.name}`)}
                   </button>
@@ -149,23 +150,23 @@ function Results({ lab, selected, onSelect }: { lab: Lab; selected: Name; onSele
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
-            <tr><th scope="row" className="py-1.5 text-start font-normal text-slate-600">{t("simulator.lab.collection")}</th>
+          <tbody className="divide-y divide-border">
+            <tr><th scope="row" className="py-1.5 text-start font-normal text-muted-foreground">{t("simulator.lab.collection")}</th>
               <td className={cell}>{formatMoney(b.collection)}</td>
               {lab.scenarios.map((x) => <td key={x.name} className={clsx(cell, "font-medium")}>{formatMoney(x.collection)}</td>)}</tr>
-            <tr><th scope="row" className="py-1.5 text-start font-normal text-slate-600">{t("simulator.lab.delta")}</th>
+            <tr><th scope="row" className="py-1.5 text-start font-normal text-muted-foreground">{t("simulator.lab.delta")}</th>
               <td className={cell}>—</td>
-              {lab.scenarios.map((x) => <td key={x.name} className={cell}>{formatMoney(x.delta)} <span className="text-xs text-slate-500">{formatPct(x.delta_pct, true)}</span></td>)}</tr>
-            <tr><th scope="row" className="py-1.5 text-start font-normal text-slate-600">{t("simulator.lab.transactions")}</th>
+              {lab.scenarios.map((x) => <td key={x.name} className={cell}>{formatMoney(x.delta)} <span className="text-xs text-muted-foreground">{formatPct(x.delta_pct, true)}</span></td>)}</tr>
+            <tr><th scope="row" className="py-1.5 text-start font-normal text-muted-foreground">{t("simulator.lab.transactions")}</th>
               <td className={cell}>{formatNumber(b.initiated)}</td>
               {lab.scenarios.map((x) => <td key={x.name} className={cell}>{formatNumber(x.transactions)}</td>)}</tr>
-            <tr><th scope="row" className="py-1.5 text-start font-normal text-slate-600">{t("simulator.lab.declined")}
-              <span className="block text-[11px] text-slate-400">{t("simulator.lab.declinedNote")}</span></th>
+            <tr><th scope="row" className="py-1.5 text-start font-normal text-muted-foreground">{t("simulator.lab.declined")}
+              <span className="block text-[11px] text-muted-foreground/70">{t("simulator.lab.declinedNote")}</span></th>
               <td className={cell}>{formatMoney(b.declined_amount)}</td>
               {lab.scenarios.map((x) => <td key={x.name} className={cell}>{formatMoney(x.declined_value)}</td>)}</tr>
             {lab.goal_for_period && (
-              <tr><th scope="row" className="py-1.5 text-start font-normal text-slate-600">{t("simulator.lab.goalNeed")}
-                <span className="block text-[11px] text-slate-400">{t("simulator.lab.goalNote", {
+              <tr><th scope="row" className="py-1.5 text-start font-normal text-muted-foreground">{t("simulator.lab.goalNeed")}
+                <span className="block text-[11px] text-muted-foreground/70">{t("simulator.lab.goalNote", {
                   goal: formatMoney(lab.monthly_goal), period: formatMoney(lab.goal_for_period) })}</span></th>
                 <td className={cell}>—</td>
                 {lab.scenarios.map((x) => <td key={x.name} className={cell}>
@@ -178,16 +179,16 @@ function Results({ lab, selected, onSelect }: { lab: Lab; selected: Name; onSele
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div>
-          <h3 className="mb-1 text-xs font-medium text-slate-500">{t("simulator.lab.bridgeTitle", { name: t(`simulator.lab.scenario.${s.name}`) })}</h3>
+          <h3 className="mb-1 text-xs font-medium text-muted-foreground">{t("simulator.lab.bridgeTitle", { name: t(`simulator.lab.scenario.${s.name}`) })}</h3>
           <Bridge lab={lab} s={s} />
-          <p className="mt-1 text-xs text-slate-500">{t("simulator.lab.bridgeNote")}</p>
-          {s.acceptance_capped.length > 0 && <p className="mt-1 text-xs text-amber-700">{t("simulator.lab.capped", {
+          <p className="mt-1 text-xs text-muted-foreground">{t("simulator.lab.bridgeNote")}</p>
+          {s.acceptance_capped.length > 0 && <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{t("simulator.lab.capped", {
             channels: s.acceptance_capped.map((c) => t(`channel.${c}`)).join(", ") })}</p>}
         </div>
         <div className="overflow-x-auto">
-          <h3 className="mb-1 text-xs font-medium text-slate-500">{t("simulator.lab.byChannel")}</h3>
+          <h3 className="mb-1 text-xs font-medium text-muted-foreground">{t("simulator.lab.byChannel")}</h3>
           <table className="w-full text-xs">
-            <thead className="text-slate-500">
+            <thead className="text-muted-foreground">
               <tr>
                 <th className="text-start font-medium">{t("tx.channel")}</th>
                 <th className="text-end font-medium">{t("simulator.lab.volume")}</th>
@@ -196,29 +197,29 @@ function Results({ lab, selected, onSelect }: { lab: Lab; selected: Name; onSele
                 <th className="text-end font-medium">{t("simulator.lab.collection")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-border">
               {s.channels.map((c) => {
                 const base = b.channels.find((x) => x.channel === c.channel);
                 return (
                   <tr key={c.channel}>
                     <td className="py-1">{t(`channel.${c.channel}`)}</td>
                     <td className="py-1 text-end tabular-nums">{formatNumber(Math.round(c.volume * 10) / 10)}
-                      <span className="block text-slate-400">{base ? formatNumber(base.initiated) : "—"}</span></td>
+                      <span className="block text-muted-foreground/70">{base ? formatNumber(base.initiated) : "—"}</span></td>
                     <td className="py-1 text-end tabular-nums">{formatPct(c.acceptance_share)}
-                      <span className="block text-slate-400">{base ? formatPct(base.acceptance_share) : "—"}</span></td>
+                      <span className="block text-muted-foreground/70">{base ? formatPct(base.acceptance_share) : "—"}</span></td>
                     <td className="py-1 text-end tabular-nums">{formatMoney(c.average_ticket)}
-                      <span className="block text-slate-400">{base?.average_ticket ? formatMoney(base.average_ticket) : "—"}</span></td>
+                      <span className="block text-muted-foreground/70">{base?.average_ticket ? formatMoney(base.average_ticket) : "—"}</span></td>
                     <td className="py-1 text-end tabular-nums">{formatMoney(c.collection)}
-                      <span className="block text-slate-400">{base ? formatMoney(base.accepted_amount) : "—"}</span></td>
+                      <span className="block text-muted-foreground/70">{base ? formatMoney(base.accepted_amount) : "—"}</span></td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
-          <p className="mt-1 text-[11px] text-slate-400">{t("simulator.lab.channelNote")}</p>
+          <p className="mt-1 text-[11px] text-muted-foreground/70">{t("simulator.lab.channelNote")}</p>
         </div>
       </div>
-      <p className="text-xs text-slate-500">{t("simulator.notForecast")}</p>
+      <p className="text-xs text-muted-foreground">{t("simulator.notForecast")}</p>
     </div>
   );
 }
@@ -236,14 +237,14 @@ function Bridge({ lab, s }: { lab: Lab; s: LabScenario }) {
     running += v;
   }
   data.push({ x: t(`simulator.lab.scenario.${s.name}`), base: 0, value: running, money: s.collection, kind: "total" });
-  const color = { total: "#0f766e", up: "#14b8a6", down: "#e11d48" } as const;
+  const color = { total: "var(--color-primary)", up: "oklch(0.696 0.17 162.48)", down: "var(--color-destructive)" } as const;
   return (
     <div className="h-56">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
           <XAxis dataKey="x" reversed={rtl} tick={{ fontSize: 10 }} interval={0} />
-          <YAxis orientation={rtl ? "right" : "left"} tickFormatter={formatCompactDzd} tick={{ fontSize: 11 }} width={48} />
+          <YAxis orientation={rtl ? "right" : "left"} tickFormatter={formatCompactDzd} tick={{ fontSize: 11 }} width={axisWidth()} />
           <Tooltip formatter={(_v, name, item) => (name === "base" ? [null, null] : [formatMoney(item.payload.money), item.payload.x])} />
           <Bar dataKey="base" stackId="w" fill="transparent" isAnimationActive={false} />
           <Bar dataKey="value" stackId="w" isAnimationActive={false}>

@@ -362,4 +362,10 @@ Run these from the repository root.
 **Backend:** FastAPI · SQLAlchemy 2 · Alembic · PostgreSQL 16 · Pydantic v2 · PyJWT · Argon2 · pytest · ruff · uv
 **Frontend:** React 19 · TypeScript 5 · Vite · Tailwind CSS 4 · TanStack Query · React Router · react-i18next (FR / AR, RTL) · Recharts
 
+**Design system:** adapted from [shadcn-fintech](https://github.com/abderrahimghazali/shadcn-fintech) (MIT) on shadcn/ui + Base UI:
+neutral OKLCH tokens with light/dark/system themes, Geist, inset collapsible sidebar, ⌘K command palette,
+`motion` animations (page transitions, staggered fade-up, sliding sheets; reduced-motion respected).
+Primitives live in `src/frontend/src/components/ui/*.tsx`, motion presets in `components/motion.tsx`,
+attribution in `src/frontend/THIRD_PARTY_NOTICES.md`.
+
 Licensed under [MIT](LICENSE).

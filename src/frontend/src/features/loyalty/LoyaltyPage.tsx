@@ -100,10 +100,10 @@ export function LoyaltyPage() {
     <div className="space-y-4">
       <Card>
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-sm font-semibold text-slate-700">{t("loyalty.title")}</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t("loyalty.title")}</h2>
           <Badge tone="warning">{t("loyalty.hypothetical")}</Badge>
         </div>
-        <p className="mt-1 text-sm text-slate-600">{t("loyalty.intro")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{t("loyalty.intro")}</p>
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-[22rem_1fr]">
@@ -115,20 +115,20 @@ export function LoyaltyPage() {
             <Field label={t("loyalty.rules.cap")} hint={t("loyalty.optional")}><Input value={form.cap} onChange={(v) => set({ cap: v })} /></Field>
             <Field label={t("loyalty.rules.expiry")} hint={t("loyalty.optional")}><Input value={form.expiry} onChange={(v) => set({ expiry: v })} /></Field>
             <Field label={t("loyalty.rules.budget")} hint={t("loyalty.optional")}><Input value={form.budget} onChange={(v) => set({ budget: v })} /></Field>
-            <hr className="border-slate-100" />
-            <p className="text-xs font-medium text-slate-500">{t("loyalty.assumptions.title")}</p>
+            <hr className="border-border" />
+            <p className="text-xs font-medium text-muted-foreground">{t("loyalty.assumptions.title")}</p>
             <Field label={t("loyalty.assumptions.margin")} hint={t("loyalty.assumptions.marginHint")}>
               <Input value={form.margin} onChange={(v) => set({ margin: v })} placeholder="25" />
             </Field>
             <Field label={t("loyalty.assumptions.fixedCost")}><Input value={form.fixedCost} onChange={(v) => set({ fixedCost: v })} /></Field>
             <Field label={t("loyalty.assumptions.window")}>
-              <select className="w-full rounded-lg border border-slate-300 px-2 py-1.5" value={form.window}
+              <select className="w-full rounded-lg border border-input px-2 py-1.5" value={form.window}
                 onChange={(e) => set({ window: e.target.value })}>
                 {["30", "90", "180"].map((d) => <option key={d} value={d}>{t("customers.days", { n: d })}</option>)}
               </select>
             </Field>
             <table className="w-full text-xs">
-              <thead className="text-slate-500">
+              <thead className="text-muted-foreground">
                 <tr><th className="text-start font-medium" />
                   <th className="text-start font-medium">{t("loyalty.assumptions.uplift")}</th>
                   <th className="text-start font-medium">{t("loyalty.assumptions.redemption")}</th></tr>
@@ -147,19 +147,19 @@ export function LoyaltyPage() {
                 ))}
               </tbody>
             </table>
-            <p className="text-xs text-slate-500">{t("loyalty.assumptions.examples")}</p>
-            {formError && <p role="alert" className="text-xs text-rose-700">{t(`loyalty.errors.${formError}`)}</p>}
-            {sim.isError && <p role="alert" className="text-xs text-rose-700">{t("loyalty.errors.server")}</p>}
+            <p className="text-xs text-muted-foreground">{t("loyalty.assumptions.examples")}</p>
+            {formError && <p role="alert" className="text-xs text-destructive">{t(`loyalty.errors.${formError}`)}</p>}
+            {sim.isError && <p role="alert" className="text-xs text-destructive">{t("loyalty.errors.server")}</p>}
             <div className="flex flex-wrap gap-2">
               <Button onClick={run} disabled={sim.isPending}>{t("loyalty.simulate")}</Button>
               {isOwner && (
                 <Button variant="outline" onClick={saveProgram} disabled={save.isPending}>{t("loyalty.saveProgram")}</Button>
               )}
             </div>
-            {save.isSuccess && <p role="status" className="text-xs text-emerald-700">
+            {save.isSuccess && <p role="status" className="text-xs text-emerald-700 dark:text-emerald-400">
               {t("loyalty.saved", { v: save.data.version, from: formatDate(save.data.effective_from) })}</p>}
-            {save.isError && <p role="alert" className="text-xs text-rose-700">{t("loyalty.errors.server")}</p>}
-            {!isOwner && <p className="text-xs text-slate-500">{t("loyalty.ownerOnly")}</p>}
+            {save.isError && <p role="alert" className="text-xs text-destructive">{t("loyalty.errors.server")}</p>}
+            {!isOwner && <p className="text-xs text-muted-foreground">{t("loyalty.ownerOnly")}</p>}
           </div>
         </Card>
 
@@ -180,8 +180,8 @@ function Results({ r }: { r: LoyaltySimulation }) {
   }
   const row = (label: string, render: (i: number) => ReactNode, note?: string) => (
     <tr>
-      <th scope="row" className="py-1.5 pe-3 text-start font-normal text-slate-600">
-        {label}{note && <span className="block text-[11px] text-slate-400">{note}</span>}
+      <th scope="row" className="py-1.5 pe-3 text-start font-normal text-muted-foreground">
+        {label}{note && <span className="block text-[11px] text-muted-foreground/70">{note}</span>}
       </th>
       {r.results.map((_, i) => <td key={i} className="py-1.5 text-end tabular-nums">{render(i)}</td>)}
     </tr>
@@ -189,7 +189,7 @@ function Results({ r }: { r: LoyaltySimulation }) {
   const x = r.results;
   return (
     <Card title={t("loyalty.results.title")}>
-      <p className="mb-3 text-xs text-slate-500">
+      <p className="mb-3 text-xs text-muted-foreground">
         {t("loyalty.results.baseline", {
           from: formatDate(b.window.date_from), to: formatDate(b.window.date_to), sales: formatMoney(b.tokenised_sales),
           tx: formatNumber(b.tokenised_transactions), customers: formatNumber(b.customers),
@@ -198,14 +198,14 @@ function Results({ r }: { r: LoyaltySimulation }) {
       </p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[30rem] text-sm">
-          <thead className="text-xs text-slate-500">
+          <thead className="text-xs text-muted-foreground">
             <tr><th />{x.map((s) => (
               <th key={s.name} className="text-end font-medium">
                 {t(`loyalty.scenario.${s.name}`)}
                 <span className="block font-normal">{t("loyalty.results.assumed", { u: formatPct(s.uplift), r: formatPct(s.redemption_rate) })}</span>
               </th>))}</tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border">
             {row(t("loyalty.results.incrementalSales"), (i) => formatMoney(x[i].incremental_sales), t("loyalty.results.incrementalNote"))}
             {row(t("loyalty.results.points"), (i) => formatNumber(x[i].points_issued))}
             {row(t("loyalty.results.liability"), (i) => formatMoney(x[i].reward_liability), t("loyalty.results.liabilityNote"))}
@@ -217,20 +217,20 @@ function Results({ r }: { r: LoyaltySimulation }) {
             {row(t("loyalty.results.net"), (i) => {
               const n = x[i].net_contribution;
               if (!n) return "—";
-              return <span className={n.centimes < 0 ? "font-semibold text-rose-700" : "font-semibold text-emerald-700"}>{formatMoney(n)}</span>;
+              return <span className={n.centimes < 0 ? "font-semibold text-destructive" : "font-semibold text-emerald-700 dark:text-emerald-400"}>{formatMoney(n)}</span>;
             }, t("loyalty.results.netNote"))}
             {row(t("loyalty.results.breakEven"), (i) => {
               const be = r.break_even[i];
-              if (be.uplift === null) return <span className="text-xs text-slate-500">{t(`loyalty.results.be_${be.reason}`)}</span>;
-              return <>{formatPct(be.uplift)}<span className="block text-[11px] text-slate-500">
+              if (be.uplift === null) return <span className="text-xs text-muted-foreground">{t(`loyalty.results.be_${be.reason}`)}</span>;
+              return <>{formatPct(be.uplift)}<span className="block text-[11px] text-muted-foreground">
                 {t("loyalty.results.beDetail", { sales: formatMoney(be.incremental_sales), tx: be.incremental_transactions ?? "—" })}</span></>;
             }, t("loyalty.results.breakEvenNote"))}
             {x.some((s) => s.budget_exceeded_by) && row(t("loyalty.results.overBudget"), (i) =>
-              x[i].budget_exceeded_by ? <span className="text-rose-700">{formatMoney(x[i].budget_exceeded_by)}</span> : "—")}
+              x[i].budget_exceeded_by ? <span className="text-destructive">{formatMoney(x[i].budget_exceeded_by)}</span> : "—")}
           </tbody>
         </table>
       </div>
-      <ul className="mt-3 list-disc space-y-1 ps-5 text-xs text-slate-500">
+      <ul className="mt-3 list-disc space-y-1 ps-5 text-xs text-muted-foreground">
         <li>{t("loyalty.method.equations")}</li>
         <li>{t("loyalty.method.notForecast")}</li>
         {r.gross_margin === null && <li>{t("loyalty.method.noMargin")}</li>}
@@ -248,11 +248,11 @@ function PilotLedger({ isOwner }: { isOwner: boolean }) {
       <Button variant="outline" className="text-xs" disabled={accrue.isPending} onClick={() => accrue.mutate()}>
         {t("loyalty.ledger.accrue")}
       </Button>) : undefined}>
-      <p className="mb-2 text-xs text-slate-500">{t("loyalty.ledger.intro")}</p>
+      <p className="mb-2 text-xs text-muted-foreground">{t("loyalty.ledger.intro")}</p>
       {q.isPending ? <Spinner /> : q.isError ? <ErrorState onRetry={() => q.refetch()} /> :
         !q.data.program ? <EmptyState>{t("loyalty.ledger.noProgram")}</EmptyState> : (
           <>
-            {accrue.data && <p role="status" className="mb-2 text-xs text-emerald-700">{t("loyalty.ledger.accrued", {
+            {accrue.data && <p role="status" className="mb-2 text-xs text-emerald-700 dark:text-emerald-400">{t("loyalty.ledger.accrued", {
               earn: accrue.data.created_earn, expire: accrue.data.created_expire, existing: accrue.data.already_recorded })}</p>}
             {q.data.summary && (
               <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
@@ -263,20 +263,20 @@ function PilotLedger({ isOwner }: { isOwner: boolean }) {
               </dl>
             )}
             {q.data.summary?.liability_over_budget && (
-              <p className="mt-2 text-xs text-rose-700">{t("loyalty.ledger.overBudget", { over: formatMoney(q.data.summary.liability_over_budget) })}</p>
+              <p className="mt-2 text-xs text-destructive">{t("loyalty.ledger.overBudget", { over: formatMoney(q.data.summary.liability_over_budget) })}</p>
             )}
-            {q.data.entries.length === 0 ? <p className="mt-2 text-xs text-slate-500">{t("loyalty.ledger.empty")}</p> : (
-              <ul className="mt-3 divide-y divide-slate-100 text-xs">
+            {q.data.entries.length === 0 ? <p className="mt-2 text-xs text-muted-foreground">{t("loyalty.ledger.empty")}</p> : (
+              <ul className="mt-3 divide-y divide-border text-xs">
                 {q.data.entries.map((e) => (
                   <li key={`${e.kind}-${e.source_transaction_id}`} className="flex justify-between gap-2 py-1">
                     <span className="font-mono">{e.customer}</span>
                     <span>{t(`loyalty.ledger.kind.${e.kind}`)} · {formatDate(e.occurred_on)}</span>
-                    <span className={e.points < 0 ? "tabular-nums text-rose-700" : "tabular-nums"}>{e.points > 0 ? "+" : ""}{e.points}</span>
+                    <span className={e.points < 0 ? "tabular-nums text-destructive" : "tabular-nums"}>{e.points > 0 ? "+" : ""}{e.points}</span>
                   </li>
                 ))}
               </ul>
             )}
-            <p className="mt-2 text-xs text-slate-500">{t("loyalty.ledger.rules")}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{t("loyalty.ledger.rules")}</p>
           </>
         )}
     </Card>
@@ -284,14 +284,14 @@ function PilotLedger({ isOwner }: { isOwner: boolean }) {
 }
 
 function Stat({ label, value }: { label: string; value: ReactNode }) {
-  return <div><dt className="text-xs text-slate-500">{label}</dt><dd className="tabular-nums">{value}</dd></div>;
+  return <div><dt className="text-xs text-muted-foreground">{label}</dt><dd className="tabular-nums">{value}</dd></div>;
 }
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-medium text-slate-700">{label}
-        {hint && <span className="ms-1 font-normal text-slate-400">({hint})</span>}</span>
+      <span className="mb-1 block text-xs font-medium text-foreground">{label}
+        {hint && <span className="ms-1 font-normal text-muted-foreground/70">({hint})</span>}</span>
       {children}
     </label>
   );
@@ -302,9 +302,9 @@ function Input({ value, onChange, placeholder, suffix }: {
 }) {
   return (
     <span className="flex items-center gap-1">
-      <input className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:border-brand-600 focus:outline-none"
+      <input className="w-full rounded-lg border border-input px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
         inputMode="decimal" value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
-      {suffix && <span className="text-slate-500">{suffix}</span>}
+      {suffix && <span className="text-muted-foreground">{suffix}</span>}
     </span>
   );
 }
