@@ -15,13 +15,16 @@ from app.shared.domain.money import Money
 
 
 class Authenticate:
-    def __init__(self, users: UserRepository, hasher: PasswordHasher, tokens: TokenService) -> None:
-        self._users, self._hasher, self._tokens = users, hasher, tokens
+    def __init__(self, users: UserRepository, hasher: PasswordHasher, tokens: TokenService,
+                 audit: AuditLog | None = None) -> None:
+        self._users, self._hasher, self._tokens, self._audit = users, hasher, tokens, audit
 
     def execute(self, email: str, password: str) -> str:
         user = self._users.get_by_email(email.strip().lower())
         if user is None or not user.is_active or not self._hasher.verify(password, user.password_hash):
             raise InvalidCredentials()  # same error whatever failed: no account enumeration
+        if self._audit is not None:
+            self._audit.record(user.id, "auth.login", f"user:{user.id}")
         return self._tokens.issue(user.id)
 
 

@@ -31,3 +31,6 @@ export type Verdict = S["Verdict"];
 export type Activity = S["ActivityOut"];
 export type MerchantProfile = S["MerchantOut"];
 export type MerchantPatch = S["MerchantPatchIn"];
+export type Pulse = S["PulseOut"];
+export type PulseItem = S["PulseItemOut"];
+export type Fact = S["FactOut"];

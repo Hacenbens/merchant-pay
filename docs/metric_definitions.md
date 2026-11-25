@@ -31,6 +31,14 @@ the original sale, so it is never netted against collections.
 - **Insufficient data** whenever either window has < 20 attempts, whatever the probability says.
 - Describes *where* declines concentrate, not *why*: the source has no decline reason.
 
+**Merchant Pulse (`analytics/domain/pulse.py`)**: fixed rules, every number is a stored metric.
+| Item | Rule |
+|---|---|
+| Collection up / down / stable | accepted collection vs the previous equal-length window; "stable" when the change is within ±5 % |
+| What explains the gap | exact split `Δ = (n₁ − n₀)·t₀ + n₁·(t₁ − t₀)`: volume effect + average-ticket effect (the ticket effect is computed as the remainder, so the two always sum to Δ to the centime) |
+| Declines | the Radar's overall verdict; a channel is named when it holds ≥ 50 % of declined value, together with *its own* verdict (so a small channel stays "insufficient data") |
+| Monthly goal pace | month-to-date accepted (1st → today) vs a linear pace `goal × day / days_in_month`; "needed per day" = remaining ÷ days left |
+
 **Numerical safeguards**
 - Money is stored as integer centimes and converted with `Decimal`, ROUND_HALF_UP. The API returns
   `{amount: "123.45", centimes: 12345}`. The frontend only formats the value; it never computes with it.

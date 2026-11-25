@@ -32,3 +32,17 @@ def test_activity_reconciles_with_accepted_ledger_and_isolates_tenants(login):
         t["amount"]["centimes"] for t in ledger["items"]) == 350050  # M2's 99,999 is absent
     assert a["pattern_sufficient"] is False and a["peak_weekday"] is None
     assert len(a["hours"]) == 24 and len(a["weekdays"]) == 7
+
+
+def test_pulse_reconciles_with_collections_summary(login):
+    c = login()
+    pulse = c.get(f"{API}/insights/pulse", params=PERIOD).json()
+    summary = c.get(f"{API}/collections/summary",
+                    params={"a_from": PERIOD["date_from"], "a_to": PERIOD["date_to"]}).json()
+    first = pulse["items"][0]
+    assert first["code"] == "collection_down"  # 3,500.50 vs T6's 5,000.00 on 25 Oct
+    assert first["facts"]["current"] == {"kind": "money", "value": summary["collected_a"]["amount"]}
+    assert first["facts"]["previous"]["value"] == summary["collected_b"]["amount"] == "5000.00"
+    assert pulse["items"][-1]["code"] == "goal_not_set"
+    assert pulse["as_of"] == "2026-11-20"
+    assert all("99999" not in str(i["facts"]) for i in pulse["items"])  # M2 never leaks in

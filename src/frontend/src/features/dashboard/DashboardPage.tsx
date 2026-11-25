@@ -12,6 +12,7 @@ import { SeverityBadge } from "@/features/alerts/SeverityBadge";
 import { isRtl } from "@/i18n";
 import { formatCompactDzd, formatDate, formatMoney, formatNumber, formatPct } from "@/lib/format";
 import { ActivityCard } from "./ActivityCard";
+import { PulseCard } from "./PulseCard";
 import { useDashboard } from "./api";
 
 export function DashboardPage() {
@@ -34,6 +35,8 @@ export function DashboardPage() {
           footnote={t("kpi.basis", { num: k.acceptance_rate.numerator, den: k.acceptance_rate.denominator })} />
         <KpiCard label={t("kpi.avgTicket")} value={formatMoney(k.average_ticket)} />
       </div>
+
+      <PulseCard />
 
       <Card title={t("dashboard.trend")}><TrendChart d={d} /></Card>
 

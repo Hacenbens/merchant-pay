@@ -8,12 +8,13 @@ from app.container import (
     get_collections_summary,
     get_dashboard_uc,
     get_decline_radar,
+    get_pulse_uc,
     get_scope,
     get_today,
 )
 from app.contexts.analytics.application.get_collections import GetCollectionsSummary
 from app.contexts.analytics.application.get_dashboard import GetDashboard
-from app.contexts.analytics.application.get_insights import GetActivityProfile, GetDeclineRadar
+from app.contexts.analytics.application.get_insights import GetActivityProfile, GetDeclineRadar, GetPulse
 from app.contexts.analytics.domain.activity import (
     MIN_ACCEPTED_FOR_PATTERN,
     MIN_DAYS_FOR_PATTERN,
@@ -30,6 +31,7 @@ from app.contexts.analytics.domain.decline_signal import (
 )
 from app.contexts.analytics.domain.kpis import Granularity, KpiSnapshot
 from app.contexts.analytics.domain.period_comparison import ChangeKind, PeriodChange
+from app.contexts.analytics.domain.pulse import FactKind, PulseCode, Tone
 from app.shared.api.schemas import MoneyOut, PeriodOut, RateOut, period_from_query
 from app.shared.domain.enums import Channel, TransactionStatus
 from app.shared.domain.merchant_scope import MerchantScope
@@ -336,4 +338,41 @@ def decline(
                          decision_probability=DECISION_PROBABILITY, min_attempts=MIN_ATTEMPTS),
         overall=DeclineSignalOut.of(r.overall),
         channels=[DeclineSignalOut.of(s) for s in r.channels],
+    )
+
+
+# ---- Merchant Pulse: evidence-based brief ------------------------------------------------
+class FactOut(BaseModel):
+    kind: FactKind
+    value: str | None  # exact string (money stays decimal); null = not computable
+
+
+class PulseItemOut(BaseModel):
+    code: PulseCode
+    tone: Tone
+    facts: dict[str, FactOut]
+    evidence: str | None  # query string for /transactions
+
+
+class PulseOut(BaseModel):
+    period: PeriodOut
+    previous_period: PeriodOut
+    as_of: date
+    items: list[PulseItemOut]
+
+
+@insights_router.get("/pulse", response_model=PulseOut)
+def pulse(
+    date_from: date | None = None,
+    date_to: date | None = None,
+    scope: MerchantScope = Depends(get_scope),
+    today: date = Depends(get_today),
+    uc: GetPulse = Depends(get_pulse_uc),
+) -> PulseOut:
+    p = uc.execute(scope, period_from_query(date_from, date_to, today), today)
+    return PulseOut(
+        period=PeriodOut.of(p.period), previous_period=PeriodOut.of(p.previous_period), as_of=p.as_of,
+        items=[PulseItemOut(code=i.code, tone=i.tone, evidence=i.evidence,
+                            facts={k: FactOut(kind=f.kind, value=f.value) for k, f in i.facts.items()})
+               for i in p.items],
     )

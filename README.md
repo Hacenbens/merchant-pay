@@ -72,6 +72,7 @@ The six required modules from the blueprint, with where each one lives.
 | 05 | Alerts and recommendations | `contexts/alerts` | `features/alerts` | ✅ 4 rules, dedupe, transitions, page, dashboard panel |
 | 06 | Commercial growth simulator (+15%) | `contexts/simulation` | `features/simulator` | ✅ API, scenario audit, page with assumptions |
 | ★ | Collection Opportunity Radar (Beta-Binomial decline signal) | `contexts/analytics` | `features/insights` | ✅ |
+| ★ | Merchant Pulse (evidence-based brief on the dashboard) | `contexts/analytics` (`domain/pulse.py`) | `features/dashboard/PulseCard.tsx` | ✅ |
 | — | Import, provenance, demo seed | `contexts/ledger`, `app/seed` | — | ✅ |
 
 Backend paths are relative to `src/backend/app/`; frontend paths to `src/frontend/src/`.
@@ -235,7 +236,7 @@ src/frontend/
 | Route | Page | Backend endpoint |
 |---|---|---|
 | `/login` | `features/auth/LoginPage.tsx` | `POST /auth/login` |
-| `/` | `features/dashboard/DashboardPage.tsx` | `GET /analytics/dashboard` |
+| `/` | `features/dashboard/DashboardPage.tsx` | `GET /analytics/dashboard`, `/analytics/activity`, `/insights/pulse` |
 | `/transactions` | `features/transactions/TransactionsPage.tsx` | `GET /transactions`, `GET /transactions/{id}` |
 | `/collections` | `features/collections/CollectionsPage.tsx` | `GET /collections/summary` |
 | `/alerts` | `features/alerts/AlertsPage.tsx` | `GET /alerts`, `POST /alerts/evaluate` |
@@ -263,6 +264,7 @@ All under `/api/v1`. Every merchant endpoint is scoped server-side by `Depends(g
 | POST | `/simulations/growth` | simulation | ✅ |
 | GET | `/analytics/activity?date_from&date_to` | analytics | ✅ |
 | GET | `/insights/decline?date_from&date_to` | analytics | ✅ |
+| GET | `/insights/pulse?date_from&date_to` | analytics | ✅ |
 
 ---
 
@@ -331,6 +333,8 @@ Run these from the repository root.
 - Tenant scope comes from the server-side access mapping, never from a client-supplied ID.
   Another merchant's record returns 404.
 - Passwords are hashed with Argon2. The session is a JWT in an httpOnly, SameSite=Lax cookie.
+- Failed logins are throttled: 5 per email+IP and 20 per IP in 15 minutes, then `429` with `Retry-After`
+  (in-memory, single process). Successful logins and profile edits are written to `audit_events`.
 
 ## 12. Tech stack and license
 

@@ -28,8 +28,9 @@ def test_partial_update_persists_and_is_audited(login, seeded):
     with Session(seeded) as s:
         other = s.get(MerchantRow, "M2")
         assert other.display_name == "Merchant Two"  # other tenant untouched
-        events = s.scalars(select(AuditEventRow)).all()
-        assert [e.action for e in events] == ["merchant.profile_updated"]
+        events = s.scalars(select(AuditEventRow)
+                           .where(AuditEventRow.action == "merchant.profile_updated")).all()
+        assert len(events) == 1
         assert events[0].entity_ref == "merchant:M1 fields:display_name,monthly_goal,operating_days"
 
 

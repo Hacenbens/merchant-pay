@@ -7,7 +7,7 @@
   "auth": {
     "title": "الدخول إلى فضاء التاجر", "email": "البريد الإلكتروني", "password": "كلمة المرور",
     "submit": "تسجيل الدخول", "error": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
-    "demoHint": "حساب تجريبي: demo@merchantpay.test / demo1234", "logout": "تسجيل الخروج"
+    "demoHint": "حساب تجريبي: demo@merchantpay.test / demo1234", "logout": "تسجيل الخروج", "throttled": "محاولات فاشلة كثيرة. انتظر 15 دقيقة قبل إعادة المحاولة."
   },
   "filters": {
     "from": "من", "to": "إلى", "granularity": "التجميع", "day": "يوم", "week": "أسبوع",
@@ -170,6 +170,46 @@
       "days": "اختر يوم عمل واحدًا على الأقل.",
       "goal": "هدف غير صالح: أدخل مبلغًا موجبًا بالدينار (رقمان عشريان على الأكثر).",
       "server": "فشل الحفظ. تحقق من القيم وحاول مجددًا."
+    }
+  },
+  "pulse": {
+    "title": "نبض التاجر: أهم ما في الفترة",
+    "footer": "كل سطر محسوب من سجل المعاملات: الفترة من {{from}} إلى {{to}} مقارنة بـ {{prevFrom}} – {{prevTo}}. لا تُختلق أي تفسيرات: إذا نقصت البيانات يُذكر ذلك.",
+    "title_collection_up": "ارتفاع التحصيلات",
+    "title_collection_down": "انخفاض التحصيلات",
+    "title_collection_stable": "تحصيلات مستقرة",
+    "title_collection_new": "نشاط جديد",
+    "title_no_activity": "لا نشاط",
+    "title_collection_drivers": "ما الذي يفسر الفرق",
+    "title_declines": "المعاملات المرفوضة",
+    "title_goal_reached": "تم بلوغ الهدف الشهري",
+    "title_goal_on_track": "الهدف الشهري: ضمن الوتيرة",
+    "title_goal_behind": "الهدف الشهري: متأخر",
+    "title_goal_not_set": "لم يُحدد هدف شهري",
+    "body": {
+      "collection_up": "تم تحصيل {{current}} مقابل {{previous}} في الفترة السابقة ({{change}}، {{delta}}).",
+      "collection_down": "تم تحصيل {{current}} مقابل {{previous}} في الفترة السابقة ({{change}}، {{delta}}).",
+      "collection_stable": "تم تحصيل {{current}} مقابل {{previous}} ({{change}}): تغير أقل من 5٪.",
+      "collection_new": "تم تحصيل {{current}} ({{accepted_count}} معاملة مقبولة)؛ لا تحصيل في الفترة السابقة.",
+      "no_activity": "لا توجد معاملات مقبولة في هذه الفترة ولا في السابقة.",
+      "collection_drivers": "الحجم: {{count_previous}} ← {{count_current}} معاملة مقبولة ({{volume_effect}}). متوسط السلة: {{ticket_previous}} ← {{ticket_current}} ({{ticket_effect}}). العامل الرئيسي: {{driver}}.",
+      "declines": "{{declined}} رفض من {{attempts}} محاولة ({{rate}} مقابل {{previous_rate}} سابقًا)، أي {{declined_amount}} من القيمة المرفوضة. الإشارة: {{verdict}} (احتمال الارتفاع {{probability_higher}}).",
+      "declines_concentration": "{{top_share}} من هذه القيمة تخص {{top_channel}} ({{top_amount}}، {{top_attempts}} محاولة: {{top_verdict}} لهذه القناة).",
+      "goal_reached": "تم تحصيل {{collected}} من {{month_start}} إلى {{as_of}}، أي {{progress}} من هدف {{goal}}.",
+      "goal_on_track": "تم تحصيل {{collected}} من {{month_start}} إلى {{as_of}} ({{progress}} من {{goal}})، فوق الوتيرة الخطية المتوقعة {{expected_by_now}}.",
+      "goal_behind": "تم تحصيل {{collected}} من {{month_start}} إلى {{as_of}} ({{progress}} من {{goal}})، دون الوتيرة الخطية المتوقعة {{expected_by_now}}.",
+      "goal_needed": "يتبقى {{remaining}} في {{days_left}} يومًا، أي {{daily_needed}} يوميًا.",
+      "goal_not_set": "حدد هدفًا في الملف لمتابعة وتيرتك الشهرية."
+    },
+    "driver": {
+      "volume": "عدد المعاملات",
+      "ticket": "متوسط السلة"
+    },
+    "next": {
+      "accepted": "عرض المعاملات المقبولة",
+      "declined": "عرض المرفوضات",
+      "radar": "فتح الرادار",
+      "profile": "تحديد الهدف"
     }
   }
 }

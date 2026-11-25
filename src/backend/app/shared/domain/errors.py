@@ -22,3 +22,11 @@ class InvalidCredentials(DomainError):
 
 class InvalidStateTransition(DomainError):
     """Aggregate state machine refused a transition (-> 409)."""
+
+
+class TooManyAttempts(DomainError):
+    """Throttled (-> 429 with Retry-After)."""
+
+    def __init__(self, retry_after_seconds: int) -> None:
+        super().__init__("Too many failed login attempts. Try again later.")
+        self.retry_after_seconds = retry_after_seconds

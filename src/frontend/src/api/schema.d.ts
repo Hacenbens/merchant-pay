@@ -158,6 +158,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/insights/pulse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pulse */
+        get: operations["pulse_api_v1_insights_pulse_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/alerts": {
         parameters: {
             query?: never;
@@ -484,6 +501,17 @@ export interface components {
             previous_period: components["schemas"]["PeriodOut"];
         };
         /**
+         * FactKind
+         * @enum {string}
+         */
+        FactKind: "money" | "count" | "ratio" | "probability" | "date" | "code";
+        /** FactOut */
+        FactOut: {
+            kind: components["schemas"]["FactKind"];
+            /** Value */
+            value: string | null;
+        };
+        /**
          * Granularity
          * @enum {string}
          */
@@ -615,6 +643,34 @@ export interface components {
             /** Delta Pct */
             delta_pct: number | null;
         };
+        /**
+         * PulseCode
+         * @enum {string}
+         */
+        PulseCode: "collection_up" | "collection_down" | "collection_stable" | "collection_new" | "no_activity" | "collection_drivers" | "declines" | "goal_reached" | "goal_on_track" | "goal_behind" | "goal_not_set";
+        /** PulseItemOut */
+        PulseItemOut: {
+            code: components["schemas"]["PulseCode"];
+            tone: components["schemas"]["Tone"];
+            /** Facts */
+            facts: {
+                [key: string]: components["schemas"]["FactOut"];
+            };
+            /** Evidence */
+            evidence: string | null;
+        };
+        /** PulseOut */
+        PulseOut: {
+            period: components["schemas"]["PeriodOut"];
+            previous_period: components["schemas"]["PeriodOut"];
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Items */
+            items: components["schemas"]["PulseItemOut"][];
+        };
         /** RateOut */
         RateOut: {
             /** Numerator */
@@ -689,6 +745,11 @@ export interface components {
             count: number;
             amount: components["schemas"]["MoneyOut"];
         };
+        /**
+         * Tone
+         * @enum {string}
+         */
+        Tone: "positive" | "negative" | "neutral" | "info";
         /** TransactionOut */
         TransactionOut: {
             /** Transaction Id */
@@ -1074,6 +1135,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DeclineRadarOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pulse_api_v1_insights_pulse_get: {
+        parameters: {
+            query?: {
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: {
+                "x-merchant-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PulseOut"];
                 };
             };
             /** @description Validation Error */

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+import { ApiError } from "@/api/client";
 import { LanguageSwitch } from "@/app/LanguageSwitch";
 import { Button } from "@/components/ui";
 import { useLogin } from "./api";
@@ -35,7 +36,11 @@ export function LoginPage() {
             <input className={input} type="password" autoComplete="current-password" required value={password}
               onChange={(e) => setPassword(e.target.value)} />
           </label>
-          {login.isError && <p role="alert" className="text-sm text-rose-600">{t("auth.error")}</p>}
+          {login.isError && (
+            <p role="alert" className="text-sm text-rose-600">
+              {login.error instanceof ApiError && login.error.status === 429 ? t("auth.throttled") : t("auth.error")}
+            </p>
+          )}
           <Button type="submit" className="w-full" disabled={login.isPending}>{t("auth.submit")}</Button>
           <p className="text-center text-xs text-slate-400">{t("auth.demoHint")}</p>
         </form>

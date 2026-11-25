@@ -1,10 +1,19 @@
+import logging
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.config import Settings, get_settings
-from app.container import SESSION_COOKIE, get_authenticate, get_me_uc, get_scope, get_update_merchant_profile
+from app.container import (
+    SESSION_COOKIE,
+    LoginThrottle,
+    get_authenticate,
+    get_login_throttle,
+    get_me_uc,
+    get_scope,
+    get_update_merchant_profile,
+)
 from app.contexts.identity.application.use_cases import (
     Authenticate,
     GetMe,
@@ -13,10 +22,12 @@ from app.contexts.identity.application.use_cases import (
 )
 from app.contexts.identity.domain.model import Merchant
 from app.shared.api.schemas import MoneyOut
+from app.shared.domain.errors import InvalidCredentials, TooManyAttempts
 from app.shared.domain.merchant_scope import MerchantScope
 from app.shared.domain.money import Money
 
 router = APIRouter(tags=["identity"])
+log = logging.getLogger("merchant_pay.auth")
 
 
 class LoginIn(BaseModel):
@@ -46,10 +57,22 @@ class MeOut(BaseModel):
 
 
 @router.post("/auth/login", status_code=status.HTTP_204_NO_CONTENT)
-def login(body: LoginIn, response: Response, uc: Authenticate = Depends(get_authenticate),
+def login(body: LoginIn, request: Request, response: Response,
+          uc: Authenticate = Depends(get_authenticate),
+          throttle: LoginThrottle = Depends(get_login_throttle),
           settings: Settings = Depends(get_settings)) -> None:
-    # TODO(stretch): rate-limit login attempts per IP/email.
-    token = uc.execute(body.email, body.password)
+    # Direct peer address. Behind a reverse proxy, configure uvicorn --proxy-headers with trusted IPs.
+    ip = request.client.host if request.client else "unknown"
+    wait = throttle.retry_after(body.email, ip)
+    if wait is not None:
+        log.warning("login throttled ip=%s retry_after=%ss", ip, wait)
+        raise TooManyAttempts(wait)
+    try:
+        token = uc.execute(body.email, body.password)
+    except InvalidCredentials:
+        throttle.record_failure(body.email, ip)
+        raise
+    throttle.reset(body.email, ip)
     response.set_cookie(SESSION_COOKIE, token, httponly=True, samesite="lax",
                         secure=settings.cookie_secure, max_age=settings.jwt_ttl_minutes * 60)
 

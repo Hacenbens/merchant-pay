@@ -7,7 +7,7 @@
   "auth": {
     "title": "Connexion à votre espace marchand", "email": "Adresse e-mail", "password": "Mot de passe",
     "submit": "Se connecter", "error": "E-mail ou mot de passe incorrect",
-    "demoHint": "Compte démo : demo@merchantpay.test / demo1234", "logout": "Déconnexion"
+    "demoHint": "Compte démo : demo@merchantpay.test / demo1234", "logout": "Déconnexion", "throttled": "Trop de tentatives échouées. Patientez 15 minutes avant de réessayer."
   },
   "filters": {
     "from": "Du", "to": "Au", "granularity": "Granularité", "day": "Jour", "week": "Semaine",
@@ -170,6 +170,46 @@
       "days": "Choisissez au moins un jour d'ouverture.",
       "goal": "Objectif invalide : saisissez un montant positif en DZD (2 décimales au plus).",
       "server": "L'enregistrement a échoué. Vérifiez les valeurs et réessayez."
+    }
+  },
+  "pulse": {
+    "title": "Merchant Pulse : l'essentiel de la période",
+    "footer": "Chaque ligne est calculée à partir du registre des transactions : période du {{from}} au {{to}}, comparée au {{prevFrom}} – {{prevTo}}. Aucune explication n'est inventée : si les données manquent, c'est indiqué.",
+    "title_collection_up": "Encaissements en hausse",
+    "title_collection_down": "Encaissements en baisse",
+    "title_collection_stable": "Encaissements stables",
+    "title_collection_new": "Nouvelle activité",
+    "title_no_activity": "Aucune activité",
+    "title_collection_drivers": "Ce qui explique l'écart",
+    "title_declines": "Transactions refusées",
+    "title_goal_reached": "Objectif mensuel atteint",
+    "title_goal_on_track": "Objectif mensuel : dans le rythme",
+    "title_goal_behind": "Objectif mensuel : en retard",
+    "title_goal_not_set": "Objectif mensuel non défini",
+    "body": {
+      "collection_up": "{{current}} encaissés contre {{previous}} sur la période précédente ({{change}}, {{delta}}).",
+      "collection_down": "{{current}} encaissés contre {{previous}} sur la période précédente ({{change}}, {{delta}}).",
+      "collection_stable": "{{current}} encaissés contre {{previous}} ({{change}}) : variation inférieure à 5 %.",
+      "collection_new": "{{current}} encaissés ({{accepted_count}} transactions acceptées) ; aucun encaissement sur la période précédente.",
+      "no_activity": "Aucune transaction acceptée sur cette période ni sur la précédente.",
+      "collection_drivers": "Volume : {{count_previous}} → {{count_current}} transactions acceptées ({{volume_effect}}). Panier moyen : {{ticket_previous}} → {{ticket_current}} ({{ticket_effect}}). Facteur principal : {{driver}}.",
+      "declines": "{{declined}} refus sur {{attempts}} tentatives ({{rate}}, contre {{previous_rate}} précédemment), soit {{declined_amount}} de valeur refusée. Signal : {{verdict}} (probabilité de hausse {{probability_higher}}).",
+      "declines_concentration": "{{top_share}} de cette valeur concerne {{top_channel}} ({{top_amount}}, {{top_attempts}} tentatives : {{top_verdict}} pour ce canal).",
+      "goal_reached": "{{collected}} encaissés du {{month_start}} au {{as_of}}, soit {{progress}} de l'objectif de {{goal}}.",
+      "goal_on_track": "{{collected}} encaissés du {{month_start}} au {{as_of}} ({{progress}} de {{goal}}), au-dessus du rythme linéaire attendu de {{expected_by_now}}.",
+      "goal_behind": "{{collected}} encaissés du {{month_start}} au {{as_of}} ({{progress}} de {{goal}}), sous le rythme linéaire attendu de {{expected_by_now}}.",
+      "goal_needed": "Il reste {{remaining}} en {{days_left}} jours, soit {{daily_needed}} par jour.",
+      "goal_not_set": "Définissez un objectif dans le profil pour suivre votre rythme mensuel."
+    },
+    "driver": {
+      "volume": "le nombre de transactions",
+      "ticket": "le panier moyen"
+    },
+    "next": {
+      "accepted": "Voir les transactions acceptées",
+      "declined": "Voir les refus",
+      "radar": "Ouvrir le radar",
+      "profile": "Définir l'objectif"
     }
   }
 }

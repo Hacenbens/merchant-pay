@@ -38,7 +38,7 @@ Hours assume a ~14 h working day. Scale them if the event is shorter, and cut fr
       (`identity/application/use_cases.py`, `identity/api/router.py`).
 - [x] `GET /collections/summary?a_from&a_to&b_from&b_to`: status totals for period A and period B, plus
       per-status `compare()` (`analytics/application/`, `analytics/api/router.py`). Integration test: A total equals the sum of the ledger.
-- [ ] Login rate limit (simple in-memory counter per email+IP) in `identity/api/router.py`.
+- [x] Login rate limit (in-memory, 5 failures per email+IP and 20 per IP per 15 min → 429 + Retry-After) in `identity/api/router.py`.
 
 **Person B**
 - [x] Collections page (`features/collections/`): period A vs B pickers, status cards, delta badges,
@@ -86,7 +86,7 @@ Hours assume a ~14 h working day. Scale them if the event is shorter, and cut fr
 2. Goal back-solver
 3. Insights page (keep the Beta-Binomial numbers only inside the decline alert explanation)
 4. Arabic for the new pages (keep French complete)
-5. Login rate limiting
+5. ~~Login rate limiting~~ (done)
 
 **Never cut:** tenant isolation, status separation, alert explanations, the +15% simulator, or reset/seed.
 
