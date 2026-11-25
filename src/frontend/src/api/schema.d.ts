@@ -107,6 +107,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Activity */
+        get: operations["activity_api_v1_analytics_activity_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/collections/summary": {
         parameters: {
             query?: never;
@@ -116,6 +133,23 @@ export interface paths {
         };
         /** Collections Summary */
         get: operations["collections_summary_api_v1_collections_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/insights/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Decline */
+        get: operations["decline_api_v1_insights_decline_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -237,6 +271,32 @@ export interface components {
             /** Role */
             role: string;
         };
+        /** ActivityOut */
+        ActivityOut: {
+            period: components["schemas"]["PeriodOut"];
+            /** Accepted Count */
+            accepted_count: number;
+            /** Pattern Sufficient */
+            pattern_sufficient: boolean;
+            /** Min Accepted For Pattern */
+            min_accepted_for_pattern: number;
+            /** Min Days For Pattern */
+            min_days_for_pattern: number;
+            /** Weekdays */
+            weekdays: components["schemas"]["WeekdayActivityOut"][];
+            /** Hours */
+            hours: components["schemas"]["HourActivityOut"][];
+            /** Busiest Days */
+            busiest_days: components["schemas"]["DayActivityOut"][];
+            /** Quietest Days */
+            quietest_days: components["schemas"]["DayActivityOut"][];
+            /** Peak Weekday */
+            peak_weekday: number | null;
+            /** Quiet Weekday */
+            quiet_weekday: number | null;
+            /** Peak Hour */
+            peak_hour: number | null;
+        };
         /** AlertOut */
         AlertOut: {
             /** Id */
@@ -298,6 +358,12 @@ export interface components {
             acceptance_share: number;
             average_ticket: components["schemas"]["MoneyOut"];
             gross_collection: components["schemas"]["MoneyOut"];
+        };
+        /** BucketOut */
+        BucketOut: {
+            /** Accepted Count */
+            accepted_count: number;
+            accepted_amount: components["schemas"]["MoneyOut"];
         };
         /**
          * ChangeKind
@@ -366,6 +432,50 @@ export interface components {
          * @enum {string}
          */
         DataOrigin: "challenge_source" | "synthetic_demo";
+        /** DayActivityOut */
+        DayActivityOut: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            total: components["schemas"]["BucketOut"];
+        };
+        /** DeclineEstimateOut */
+        DeclineEstimateOut: {
+            observed: components["schemas"]["RateOut"];
+            declined_amount: components["schemas"]["MoneyOut"];
+            /** Posterior Alpha */
+            posterior_alpha: number;
+            /** Posterior Beta */
+            posterior_beta: number;
+            /** Mean */
+            mean: number;
+            /** Lower */
+            lower: number;
+            /** Upper */
+            upper: number;
+            /** Sufficient */
+            sufficient: boolean;
+        };
+        /** DeclineRadarOut */
+        DeclineRadarOut: {
+            period: components["schemas"]["PeriodOut"];
+            previous_period: components["schemas"]["PeriodOut"];
+            method: components["schemas"]["MethodOut"];
+            overall: components["schemas"]["DeclineSignalOut"];
+            /** Channels */
+            channels: components["schemas"]["DeclineSignalOut"][];
+        };
+        /** DeclineSignalOut */
+        DeclineSignalOut: {
+            channel: components["schemas"]["Channel"] | null;
+            current: components["schemas"]["DeclineEstimateOut"];
+            previous: components["schemas"]["DeclineEstimateOut"];
+            /** Probability Higher */
+            probability_higher: number;
+            verdict: components["schemas"]["Verdict"];
+        };
         /** EvaluationOut */
         EvaluationOut: {
             /** Created */
@@ -382,6 +492,12 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HourActivityOut */
+        HourActivityOut: {
+            /** Hour */
+            hour: number;
+            total: components["schemas"]["BucketOut"];
         };
         /** KpiOut */
         KpiOut: {
@@ -427,6 +543,38 @@ export interface components {
             /** Operating Days */
             operating_days: string[];
             monthly_goal: components["schemas"]["MoneyOut"] | null;
+        };
+        /**
+         * MerchantPatchIn
+         * @description Partial update: omitted fields are unchanged; monthly_goal_centimes=null clears the goal.
+         */
+        MerchantPatchIn: {
+            /** Display Name */
+            display_name?: string | null;
+            /** Category */
+            category?: string | null;
+            /** Operating Days */
+            operating_days?: ("sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat")[] | null;
+            /** Monthly Goal Centimes */
+            monthly_goal_centimes?: number | null;
+        };
+        /** MethodOut */
+        MethodOut: {
+            /**
+             * Name
+             * @default beta_binomial
+             */
+            name: string;
+            /** Prior Alpha */
+            prior_alpha: number;
+            /** Prior Beta */
+            prior_beta: number;
+            /** Credible Mass */
+            credible_mass: number;
+            /** Decision Probability */
+            decision_probability: number;
+            /** Min Attempts */
+            min_attempts: number;
         };
         /** MoneyOut */
         MoneyOut: {
@@ -590,6 +738,20 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /**
+         * Verdict
+         * @enum {string}
+         */
+        Verdict: "elevated" | "lower" | "no_clear_change" | "insufficient_data";
+        /** WeekdayActivityOut */
+        WeekdayActivityOut: {
+            /** Weekday */
+            weekday: number;
+            /** Occurrences */
+            occurrences: number;
+            total: components["schemas"]["BucketOut"];
+            average_amount_per_day: components["schemas"]["MoneyOut"] | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -690,9 +852,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    [key: string]: unknown;
-                };
+                "application/json": components["schemas"]["MerchantPatchIn"];
             };
         };
         responses: {
@@ -823,6 +983,40 @@ export interface operations {
             };
         };
     };
+    activity_api_v1_analytics_activity_get: {
+        parameters: {
+            query?: {
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: {
+                "x-merchant-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     collections_summary_api_v1_collections_summary_get: {
         parameters: {
             query?: {
@@ -846,6 +1040,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CollectionsSummaryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decline_api_v1_insights_decline_get: {
+        parameters: {
+            query?: {
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: {
+                "x-merchant-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeclineRadarOut"];
                 };
             };
             /** @description Validation Error */

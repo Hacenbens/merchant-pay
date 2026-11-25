@@ -65,13 +65,13 @@ The six required modules from the blueprint, with where each one lives.
 
 | # | Module | Backend | Frontend | Status |
 |---|---|---|---|---|
-| 01 | Merchant management (login, profile, access) | `contexts/identity` | `features/auth`, `features/merchant` | ✅ login, scope, `GET /merchant/me` · ⬜ profile edit |
+| 01 | Merchant management (login, profile, access) | `contexts/identity` | `features/auth`, `features/merchant` | ✅ login, scope, profile view + owner-only validated edit (audited) |
 | 02 | Transaction ledger (search, filters, detail) | `contexts/ledger` | `features/transactions` | ✅ |
 | 03 | Collection engine (status-separated totals, A vs B) | `contexts/analytics` | `features/collections` | ✅ `/collections/summary` + page |
-| 04 | Dynamic dashboard | `contexts/analytics` | `features/dashboard` | ✅ |
+| 04 | Dynamic dashboard | `contexts/analytics` | `features/dashboard` | ✅ incl. high/low activity periods (`/analytics/activity`) |
 | 05 | Alerts and recommendations | `contexts/alerts` | `features/alerts` | ✅ 4 rules, dedupe, transitions, page, dashboard panel |
 | 06 | Commercial growth simulator (+15%) | `contexts/simulation` | `features/simulator` | ✅ API, scenario audit, page with assumptions |
-| ★ | Insights (Beta-Binomial decline signal) | `contexts/analytics` | `features/insights` | ⬜ stretch |
+| ★ | Collection Opportunity Radar (Beta-Binomial decline signal) | `contexts/analytics` | `features/insights` | ✅ |
 | — | Import, provenance, demo seed | `contexts/ledger`, `app/seed` | — | ✅ |
 
 Backend paths are relative to `src/backend/app/`; frontend paths to `src/frontend/src/`.
@@ -182,7 +182,7 @@ src/backend/
 |---|---|---|---|---|
 | **identity** | `model.py`: `User`, `Merchant`, `MerchantAccess`, `Role` | `ports.py`, `use_cases.py`: `Authenticate`, `ResolveScope`, `GetMe` | `security.py`: Argon2, JWT · `sql_repositories.py` | `router.py`: login, logout, `/merchant/me` |
 | **ledger** | `transaction.py`: `Transaction` · `row_parsing.py`: validation · `import_batch.py` | `ports.py`, `queries.py`: `SearchTransactions`, `GetTransaction` · `import_transactions.py` | `sql_transaction_repository.py` · `file_sources.py`: xlsx/csv | `router.py`: `/transactions` |
-| **analytics** | `kpis.py`: `compute_kpis`, `channel_mix`, `collection_series` · `period_comparison.py` | `get_dashboard.py`: `GetDashboard` · `get_collections.py`: `GetCollectionsSummary` | (reuses the ledger SQL repository) | `router.py`: `/analytics/dashboard` · `collections_router.py` endpoints: `/collections/summary` |
+| **analytics** | `kpis.py`: `compute_kpis`, `channel_mix`, `collection_series` · `period_comparison.py` · `activity.py` · `decline_signal.py` + `beta.py` | `get_dashboard.py`: `GetDashboard` · `get_collections.py`: `GetCollectionsSummary` · `get_insights.py`: `GetDeclineRadar`, `GetActivityProfile` | (reuses the ledger SQL repository) | `router.py`: `/analytics/dashboard` · `collections_router.py` endpoints: `/collections/summary` |
 | **alerts** | `alert.py`: `Alert` state machine · `rules.py`: `CollectionDropRule`, `DeclineSpikeRule`, `InactivityRule`, `GoalReachedRule` | `ports.py`, `evaluate_alerts.py`, `manage_alerts.py` | `sql_alert_repository.py` (dedupe on `dedupe_key`) | `router.py`: `/alerts` |
 | **simulation** | `growth.py`: `Baseline`, `Assumptions`, `simulate` · `scenario_run.py` | `run_simulation.py` | `sql_scenario_repository.py` (audit row) | `router.py`: `/simulations/growth` |
 
@@ -217,8 +217,8 @@ src/frontend/
 │   │   ├── collections/      ✅ CollectionsPage (period A vs B, status cards) · api.ts
 │   │   ├── alerts/           ✅ AlertsPage (tabs, detail, ack/resolve) · api.ts · SeverityBadge
 │   │   ├── simulator/        ✅ SimulatorPage (+15% default, assumptions) · api.ts
-│   │   ├── insights/         ⬜ placeholder (stretch)
-│   │   └── merchant/         ⬜ ProfilePage placeholder
+│   │   ├── insights/         ✅ InsightsPage (Collection Opportunity Radar) · api.ts
+│   │   └── merchant/         ✅ ProfilePage (owner-only edit, monthly goal)
 │   ├── components/
 │   │   ├── ui/index.tsx      Card, Button, Badge, Spinner, EmptyState, ErrorState
 │   │   ├── KpiCard.tsx · StatusBadge.tsx
@@ -240,8 +240,8 @@ src/frontend/
 | `/collections` | `features/collections/CollectionsPage.tsx` | `GET /collections/summary` |
 | `/alerts` | `features/alerts/AlertsPage.tsx` | `GET /alerts`, `POST /alerts/evaluate` |
 | `/simulator` | `features/simulator/SimulatorPage.tsx` | `POST /simulations/growth` |
-| `/insights` | `features/insights/InsightsPage.tsx` | ⬜ `GET /insights/decline` |
-| `/profile` | `features/merchant/ProfilePage.tsx` | `GET /merchant/me` · ⬜ `PATCH /merchant/me` |
+| `/insights` | `features/insights/InsightsPage.tsx` | `GET /insights/decline` |
+| `/profile` | `features/merchant/ProfilePage.tsx` | `GET /merchant/me` · `PATCH /merchant/me` |
 
 ---
 
@@ -253,7 +253,7 @@ All under `/api/v1`. Every merchant endpoint is scoped server-side by `Depends(g
 |---|---|---|---|
 | POST | `/auth/login` · `/auth/logout` | identity | ✅ |
 | GET | `/merchant/me` | identity | ✅ |
-| PATCH | `/merchant/me` | identity | ⬜ |
+| PATCH | `/merchant/me` | identity | ✅ owner-only, audited |
 | GET | `/transactions?date_from&date_to&status&channel&q&page&size` | ledger | ✅ |
 | GET | `/transactions/{id}` | ledger | ✅ |
 | GET | `/analytics/dashboard?date_from&date_to&granularity` | analytics | ✅ |
@@ -261,7 +261,8 @@ All under `/api/v1`. Every merchant endpoint is scoped server-side by `Depends(g
 | GET | `/alerts?state` | alerts | ✅ |
 | POST | `/alerts/evaluate` · `/alerts/{id}/acknowledge\|resolve` | alerts | ✅ |
 | POST | `/simulations/growth` | simulation | ✅ |
-| GET | `/insights/decline` | analytics | ⬜ stretch |
+| GET | `/analytics/activity?date_from&date_to` | analytics | ✅ |
+| GET | `/insights/decline?date_from&date_to` | analytics | ✅ |
 
 ---
 

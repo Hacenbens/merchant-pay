@@ -1,70 +1,153 @@
-import { useState, useEffect } from "react";
-import { api } from "@/api/client";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
+import type { DeclineEstimate, DeclineRadar, DeclineSignal, Verdict } from "@/api/types";
+import { useFilters } from "@/app/filters";
+import { Badge, Card, ErrorState, Spinner } from "@/components/ui";
+import { formatDate, formatMoney, formatNumber, formatProbability } from "@/lib/format";
+import { useDeclineRadar } from "./api";
 
-export const InsightsPage = () => {
+/** Collection Opportunity Radar: where declined value is concentrated, with honest uncertainty. */
+export function InsightsPage() {
   const { t } = useTranslation();
-  const [data, setData] = useState<{ declineRate: number; confidence: number; sampleSize: number } | null>(null);
-  const [_loading, _setLoading] = useState(true);
-  const [error, setError] = useState<string>("");
-
-  useEffect(() => {
-    let cancelled = false;
-    api("/insights/decline", { method: "GET" }).then((res: unknown) => {
-        if (!cancelled) {
-          setData({
-            declineRate: (res as { value: number }).value ?? 0,
-            confidence: 0.95,
-            sampleSize: (res as { denominator: number }).denominator ?? 0,
-          });
-        }
-      })
-.catch((_e: unknown) => {
-        if (!cancelled) {
-          setError(t("insights.error"));
-        }
-      })
-;
-    return () => { cancelled = true; };
-  }, []);
-
-  if (_loading) {
-    return <p>{t("common.loading")}</p>;
-  }
-
-  if (error) {
-    return <p className="text-destructive">{error}</p>;
-  }
-
-  if (!data) {
-    return <p>{t("insights.empty")}</p>;
-  }
-
-  const { declineRate, sampleSize } = data;
-  const denominator = sampleSize;
-  const confidenceLevel = 0.95;
-  const z = 1.96;
-  const p = declineRate / (denominator > 0 ? denominator : 1);
-  const se = Math.sqrt((p * (1 - p)) / denominator);
-  const margin = z * se;
-  const lower = Math.max(0, p - margin);
-  const upper = Math.min(1, p + margin);
+  const filters = useFilters();
+  const q = useDeclineRadar(filters);
+  if (q.isPending) return <Spinner />;
+  if (q.isError) return <ErrorState onRetry={() => q.refetch()} />;
+  const r = q.data;
+  // shared horizontal scale for every interval bar, so channels are visually comparable
+  const scaleMax = Math.min(1, Math.max(0.1, ...[r.overall, ...r.channels]
+    .flatMap((s) => [s.current.upper, s.previous.upper])) * 1.1);
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold">{t("insights.title")}</h2>
-      <p className="text-muted-foreground">{t("insights.intro")}</p>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="p-4 rounded border">{t("insights.confidence", { value: (confidenceLevel * 100).toFixed(0) })}</div>
-        <div className="p-4 rounded border">{t("insights.sample_size", { value: sampleSize })}</div>
-      </div>
-      <div className="mt-4">
-        <p>{t("insights.decline_rate", { value: (declineRate * 100).toFixed(1) })}</p>
-        <p>{t("insights.confidence_interval", { value: (lower * 100).toFixed(1), value2: (upper * 100).toFixed(1) })}</p>
-        {sampleSize < 30 && (
-          <p className="text-sm text-destructive">{t("insights.insufficient_data")}</p>
-        )}
+    <div className="space-y-4">
+      <Card title={t("insights.title")}>
+        <p className="text-sm text-slate-600">{t("insights.intro")}</p>
+        <p className="mt-2 text-xs text-slate-500">
+          {t("insights.periods", {
+            from: formatDate(r.period.date_from), to: formatDate(r.period.date_to),
+            prevFrom: formatDate(r.previous_period.date_from), prevTo: formatDate(r.previous_period.date_to),
+          })}
+        </p>
+      </Card>
+
+      <Card title={t("insights.overall")}>
+        <SignalSummary s={r.overall} radar={r} />
+        <IntervalBar s={r.overall} max={scaleMax} />
+      </Card>
+
+      <Card title={t("insights.byChannel")}>
+        <ul className="divide-y divide-slate-100">
+          {r.channels.map((s) => (
+            <li key={s.channel} className="py-3">
+              <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm font-medium text-slate-800">{t(`channel.${s.channel}`)}</span>
+                <VerdictBadge verdict={s.verdict} />
+              </div>
+              <SignalSummary s={s} radar={r} compact />
+              <IntervalBar s={s} max={scaleMax} />
+            </li>
+          ))}
+        </ul>
+      </Card>
+
+      <Card title={t("insights.method.title")}>
+        <ul className="list-disc space-y-1 ps-5 text-xs text-slate-600">
+          <li>{t("insights.method.model", { a: r.method.prior_alpha, b: r.method.prior_beta,
+            mean: formatProbability(r.method.prior_alpha / (r.method.prior_alpha + r.method.prior_beta)) })}</li>
+          <li>{t("insights.method.denominator")}</li>
+          <li>{t("insights.method.interval", { mass: formatProbability(r.method.credible_mass) })}</li>
+          <li>{t("insights.method.decision", { p: formatProbability(r.method.decision_probability),
+            q: formatProbability(1 - r.method.decision_probability) })}</li>
+          <li>{t("insights.method.minimum", { n: r.method.min_attempts })}</li>
+          <li>{t("insights.method.limits")}</li>
+        </ul>
+      </Card>
+    </div>
+  );
+}
+
+const VERDICT_TONE: Record<Verdict, "warning" | "success" | "neutral" | "info"> = {
+  elevated: "warning", lower: "success", no_clear_change: "neutral", insufficient_data: "info",
+};
+
+function VerdictBadge({ verdict }: { verdict: Verdict }) {
+  const { t } = useTranslation();
+  return <Badge tone={VERDICT_TONE[verdict]}>{t(`insights.verdict.${verdict}`)}</Badge>;
+}
+
+function SignalSummary({ s, radar, compact = false }: { s: DeclineSignal; radar: DeclineRadar; compact?: boolean }) {
+  const { t } = useTranslation();
+  const ledger = new URLSearchParams({ status: "declined", date_from: radar.period.date_from,
+    date_to: radar.period.date_to });
+  if (s.channel) ledger.append("channel", s.channel);
+  return (
+    <div className="space-y-1 text-sm">
+      {!compact && <VerdictBadge verdict={s.verdict} />}
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-4">
+        <Stat label={t("insights.declinedValue")} value={formatMoney(s.current.declined_amount)} />
+        <Stat label={t("insights.observed")} value={<Observed e={s.current} />} />
+        <Stat label={t("insights.estimate")} value={<Estimate e={s.current} />} />
+        <Stat label={t("insights.previous")} value={<Estimate e={s.previous} />} />
+      </dl>
+      <p className="text-xs text-slate-500">
+        {s.verdict === "insufficient_data"
+          ? t("insights.insufficient", { n: radar.method.min_attempts,
+            cur: s.current.observed.denominator, prev: s.previous.observed.denominator })
+          : t("insights.probabilityHigher", { p: formatProbability(s.probability_higher) })}
+        {" · "}
+        <Link className="text-brand-700 hover:underline" to={`/transactions?${ledger}`}>
+          {t("insights.openDeclined", { n: s.current.observed.numerator })}
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div>
+      <dt className="text-xs text-slate-500">{label}</dt>
+      <dd className="tabular-nums text-slate-800">{value}</dd>
+    </div>
+  );
+}
+
+function Observed({ e }: { e: DeclineEstimate }) {
+  const { t } = useTranslation();
+  return <>{e.observed.value === null ? "—" : formatProbability(e.observed.value)}{" "}
+    <span className="text-xs text-slate-500">
+      ({t("kpi.basis", { num: formatNumber(e.observed.numerator), den: formatNumber(e.observed.denominator) })})
+    </span></>;
+}
+
+function Estimate({ e }: { e: DeclineEstimate }) {
+  return <>{formatProbability(e.mean)}{" "}
+    <span className="text-xs text-slate-500">[{formatProbability(e.lower)} – {formatProbability(e.upper)}]</span></>;
+}
+
+/** Previous (grey) vs current (amber) 90% credible intervals on one shared scale; dots = posterior means. */
+function IntervalBar({ s, max }: { s: DeclineSignal; max: number }) {
+  const { t } = useTranslation();
+  const pos = (v: number) => `${Math.min(100, (v / max) * 100)}%`;
+  const row = (e: DeclineEstimate, color: string, label: string) => (
+    <div className="flex items-center gap-2">
+      <span className="w-20 shrink-0 text-[11px] text-slate-500">{label}</span>
+      <div className="relative h-3 flex-1 rounded bg-slate-100" aria-hidden>
+        <div className={`absolute top-0.5 h-2 rounded ${color} opacity-60`}
+          style={{ insetInlineStart: pos(e.lower), width: `calc(${pos(e.upper)} - ${pos(e.lower)})` }} />
+        <div className={`absolute top-0 h-3 w-1 rounded ${color}`} style={{ insetInlineStart: pos(e.mean) }} />
       </div>
     </div>
   );
-};
+  return (
+    <div className="mt-2 space-y-1" role="img"
+      aria-label={t("insights.intervalAria", { cur: formatProbability(s.current.mean), prev: formatProbability(s.previous.mean) })}>
+      {row(s.previous, "bg-slate-400", t("insights.previousShort"))}
+      {row(s.current, "bg-amber-500", t("insights.currentShort"))}
+      <div className="flex justify-between ps-22 text-[10px] text-slate-400">
+        <span>0 %</span><span>{formatProbability(max)}</span>
+      </div>
+    </div>
+  );
+}

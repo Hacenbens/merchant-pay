@@ -3,9 +3,31 @@ from datetime import date
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from app.container import get_collections_summary, get_dashboard_uc, get_scope, get_today
+from app.container import (
+    get_activity_profile,
+    get_collections_summary,
+    get_dashboard_uc,
+    get_decline_radar,
+    get_scope,
+    get_today,
+)
 from app.contexts.analytics.application.get_collections import GetCollectionsSummary
 from app.contexts.analytics.application.get_dashboard import GetDashboard
+from app.contexts.analytics.application.get_insights import GetActivityProfile, GetDeclineRadar
+from app.contexts.analytics.domain.activity import (
+    MIN_ACCEPTED_FOR_PATTERN,
+    MIN_DAYS_FOR_PATTERN,
+    Bucket,
+)
+from app.contexts.analytics.domain.decline_signal import (
+    CREDIBLE_MASS,
+    DECISION_PROBABILITY,
+    MIN_ATTEMPTS,
+    PRIOR,
+    DeclineEstimate,
+    DeclineSignal,
+    Verdict,
+)
 from app.contexts.analytics.domain.kpis import Granularity, KpiSnapshot
 from app.contexts.analytics.domain.period_comparison import ChangeKind, PeriodChange
 from app.shared.api.schemas import MoneyOut, PeriodOut, RateOut, period_from_query
@@ -171,4 +193,147 @@ def collections_summary(
                              amount_change=ChangeOut.of(c.amount_change))
             for c in s.by_status
         ],
+    )
+
+
+# ---- activity periods (module 04): high- and low-activity periods -------------------------
+class BucketOut(BaseModel):
+    accepted_count: int
+    accepted_amount: MoneyOut
+
+    @classmethod
+    def of(cls, b: Bucket) -> "BucketOut":
+        return cls(accepted_count=b.accepted_count, accepted_amount=MoneyOut.of(b.accepted_amount))
+
+
+class WeekdayActivityOut(BaseModel):
+    weekday: int  # 0 = Monday
+    occurrences: int
+    total: BucketOut
+    average_amount_per_day: MoneyOut | None
+
+
+class HourActivityOut(BaseModel):
+    hour: int
+    total: BucketOut
+
+
+class DayActivityOut(BaseModel):
+    day: date
+    total: BucketOut
+
+
+class ActivityOut(BaseModel):
+    period: PeriodOut
+    accepted_count: int
+    pattern_sufficient: bool
+    min_accepted_for_pattern: int
+    min_days_for_pattern: int
+    weekdays: list[WeekdayActivityOut]
+    hours: list[HourActivityOut]
+    busiest_days: list[DayActivityOut]
+    quietest_days: list[DayActivityOut]
+    peak_weekday: int | None
+    quiet_weekday: int | None
+    peak_hour: int | None
+
+
+@router.get("/activity", response_model=ActivityOut)
+def activity(
+    date_from: date | None = None,
+    date_to: date | None = None,
+    scope: MerchantScope = Depends(get_scope),
+    today: date = Depends(get_today),
+    uc: GetActivityProfile = Depends(get_activity_profile),
+) -> ActivityOut:
+    p = uc.execute(scope, period_from_query(date_from, date_to, today))
+    day = lambda d: DayActivityOut(day=d.day, total=BucketOut.of(d.total))  # noqa: E731
+    return ActivityOut(
+        period=PeriodOut.of(p.period),
+        accepted_count=p.accepted_count,
+        pattern_sufficient=p.pattern_sufficient,
+        min_accepted_for_pattern=MIN_ACCEPTED_FOR_PATTERN,
+        min_days_for_pattern=MIN_DAYS_FOR_PATTERN,
+        weekdays=[WeekdayActivityOut(
+            weekday=w.weekday, occurrences=w.occurrences, total=BucketOut.of(w.total),
+            average_amount_per_day=(MoneyOut.of(w.average_amount_per_day)
+                                    if w.average_amount_per_day else None))
+            for w in p.weekdays],
+        hours=[HourActivityOut(hour=h.hour, total=BucketOut.of(h.total)) for h in p.hours],
+        busiest_days=[day(d) for d in p.busiest_days],
+        quietest_days=[day(d) for d in p.quietest_days],
+        peak_weekday=p.peak_weekday,
+        quiet_weekday=p.quiet_weekday,
+        peak_hour=p.peak_hour,
+    )
+
+
+# ---- insights: Collection Opportunity Radar (Beta-Binomial decline signal) ----------------
+insights_router = APIRouter(prefix="/insights", tags=["insights"])
+
+
+class DeclineEstimateOut(BaseModel):
+    observed: RateOut  # declined / (accepted + declined)
+    declined_amount: MoneyOut
+    posterior_alpha: float
+    posterior_beta: float
+    mean: float
+    lower: float
+    upper: float
+    sufficient: bool
+
+    @classmethod
+    def of(cls, e: DeclineEstimate) -> "DeclineEstimateOut":
+        return cls(observed=RateOut.of(e.observed), declined_amount=MoneyOut.of(e.declined_amount),
+                   posterior_alpha=e.posterior_alpha, posterior_beta=e.posterior_beta,
+                   mean=e.mean, lower=e.lower, upper=e.upper, sufficient=e.sufficient)
+
+
+class DeclineSignalOut(BaseModel):
+    channel: Channel | None  # null = all channels
+    current: DeclineEstimateOut
+    previous: DeclineEstimateOut
+    probability_higher: float
+    verdict: Verdict
+
+    @classmethod
+    def of(cls, s: DeclineSignal) -> "DeclineSignalOut":
+        return cls(channel=s.channel, current=DeclineEstimateOut.of(s.current),
+                   previous=DeclineEstimateOut.of(s.previous),
+                   probability_higher=s.probability_higher, verdict=s.verdict)
+
+
+class MethodOut(BaseModel):
+    name: str = "beta_binomial"
+    prior_alpha: float
+    prior_beta: float
+    credible_mass: float
+    decision_probability: float
+    min_attempts: int
+
+
+class DeclineRadarOut(BaseModel):
+    period: PeriodOut
+    previous_period: PeriodOut
+    method: MethodOut
+    overall: DeclineSignalOut
+    channels: list[DeclineSignalOut]
+
+
+@insights_router.get("/decline", response_model=DeclineRadarOut)
+def decline(
+    date_from: date | None = None,
+    date_to: date | None = None,
+    scope: MerchantScope = Depends(get_scope),
+    today: date = Depends(get_today),
+    uc: GetDeclineRadar = Depends(get_decline_radar),
+) -> DeclineRadarOut:
+    r = uc.execute(scope, period_from_query(date_from, date_to, today))
+    return DeclineRadarOut(
+        period=PeriodOut.of(r.period),
+        previous_period=PeriodOut.of(r.previous_period),
+        method=MethodOut(prior_alpha=PRIOR.alpha, prior_beta=PRIOR.beta, credible_mass=CREDIBLE_MASS,
+                         decision_probability=DECISION_PROBABILITY, min_attempts=MIN_ATTEMPTS),
+        overall=DeclineSignalOut.of(r.overall),
+        channels=[DeclineSignalOut.of(s) for s in r.channels],
     )

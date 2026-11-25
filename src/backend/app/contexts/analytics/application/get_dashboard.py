@@ -55,9 +55,3 @@ class GetDashboard:
             series=collection_series(current, period, granularity),
             channels=channel_mix(current),
         )
-
-
-# TODO(Person A): GetCollectionsSummary(period_a, period_b) -> status totals for both periods +
-#   per-status PeriodChange. Endpoint GET /collections/summary. Reuse compute_kpis + compare.
-# TODO(stretch): domain/decline_signal.py - Beta-Binomial posterior for decline rate
-#   (prior Beta(a0,b0); posterior Beta(a0+declined, b0+accepted)); minimum sample gate.

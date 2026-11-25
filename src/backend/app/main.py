@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.contexts.alerts.api.router import router as alerts_router
-from app.contexts.analytics.api.router import collections_router
+from app.contexts.analytics.api.router import collections_router, insights_router
 from app.contexts.analytics.api.router import router as analytics_router
 from app.contexts.identity.api.router import router as identity_router
 from app.contexts.ledger.api.router import router as ledger_router
@@ -24,6 +24,7 @@ def create_app() -> FastAPI:
     api.include_router(ledger_router)
     api.include_router(analytics_router)
     api.include_router(collections_router)
+    api.include_router(insights_router)
     api.include_router(alerts_router)
     api.include_router(simulation_router)
     app.include_router(api)

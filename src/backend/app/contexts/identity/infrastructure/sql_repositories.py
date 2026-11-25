@@ -2,7 +2,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.contexts.identity.domain.model import Merchant, MerchantAccess, Role, User, UserStatus
-from app.db.models import MerchantRow, UserMerchantAccessRow, UserRow
+from app.db.models import AuditEventRow, MerchantRow, UserMerchantAccessRow, UserRow
+from app.shared.domain.errors import NotFound
 from app.shared.domain.money import Money
 
 
@@ -46,3 +47,22 @@ class SqlMerchantRepository:
         goal = Money(row.monthly_goal_centimes) if row.monthly_goal_centimes is not None else None
         days = tuple(d for d in row.operating_days.split(",") if d)
         return Merchant(row.merchant_id, row.display_name, row.category, row.timezone, days, goal)
+
+    def save(self, merchant: Merchant) -> None:
+        """Update in the request's unit of work; get_db() commits at the end of the request."""
+        row = self._s.get(MerchantRow, merchant.merchant_id)
+        if row is None:
+            raise NotFound("Merchant not found")
+        row.display_name = merchant.display_name
+        row.category = merchant.category
+        row.operating_days = ",".join(merchant.operating_days)
+        row.monthly_goal_centimes = merchant.monthly_goal.centimes if merchant.monthly_goal else None
+        self._s.flush()
+
+
+class SqlAuditLog:
+    def __init__(self, session: Session) -> None:
+        self._s = session
+
+    def record(self, actor_id: int, action: str, entity_ref: str) -> None:
+        self._s.add(AuditEventRow(actor_id=actor_id, action=action, entity_ref=entity_ref[:255]))

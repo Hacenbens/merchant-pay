@@ -106,5 +106,70 @@
   "common": {
     "loading": "Chargement…", "error": "Une erreur est survenue.", "retry": "Réessayer",
     "todo": "Module en construction", "todoBody": "Cette page fait partie du plan d'équipe (docs/TEAM_PLAN.md)."
+  },
+  "insights": {
+    "title": "Radar des opportunités d'encaissement",
+    "intro": "Où se concentre la valeur des transactions refusées, canal par canal. Une transaction refusée n'est pas un revenu récupérable : c'est une valeur interrompue à examiner. Le radar indique où regarder, pas pourquoi le refus a eu lieu (aucun motif de refus dans les données).",
+    "periods": "Période : {{from}} – {{to}}, comparée à {{prevFrom}} – {{prevTo}} (même durée).",
+    "overall": "Tous canaux",
+    "byChannel": "Par canal (trié par valeur refusée)",
+    "declinedValue": "Valeur refusée",
+    "observed": "Taux observé",
+    "estimate": "Estimation [IC 90 %]",
+    "previous": "Période précédente",
+    "previousShort": "Précédente",
+    "currentShort": "Actuelle",
+    "probabilityHigher": "Probabilité que le taux de refus soit plus élevé qu'en période précédente : {{p}}",
+    "insufficient": "Données insuffisantes : au moins {{n}} tentatives requises par période (actuelle {{cur}}, précédente {{prev}}).",
+    "openDeclined": "Voir les {{n}} refus",
+    "intervalAria": "Taux de refus estimé : {{cur}} actuellement contre {{prev}} précédemment",
+    "verdict": {
+      "elevated": "Hausse probable",
+      "lower": "Baisse probable",
+      "no_clear_change": "Pas de changement net",
+      "insufficient_data": "Données insuffisantes"
+    },
+    "method": {
+      "title": "Méthode et limites",
+      "model": "Modèle Bêta-Binomial. A priori Bêta({{a}}, {{b}}), centré sur {{mean}}, équivalent à 20 tentatives fictives ; il évite de conclure sur quelques transactions.",
+      "denominator": "Taux de refus = refusées / (acceptées + refusées). Les annulées et remboursées ne sont pas des décisions d'autorisation et sont exclues.",
+      "interval": "Les intervalles affichés sont des intervalles crédibles à {{mass}} de la loi a posteriori.",
+      "decision": "« Hausse probable » si P(taux actuel > taux précédent) ≥ {{p}} ; « Baisse probable » si ≤ {{q}}.",
+      "minimum": "Aucune conclusion sous {{n}} tentatives dans l'une des deux périodes.",
+      "limits": "Signal descriptif sur données synthétiques : ce n'est ni une détection de fraude ni la preuve d'une panne d'un canal."
+    }
+  },
+  "activity": {
+    "title": "Périodes de forte et de faible activité",
+    "summary": "Jour le plus fort : {{peak}} · jour le plus calme : {{quiet}} · heure de pointe : {{hour}} (encaissements acceptés).",
+    "insufficient": "Historique trop court pour dégager un profil hebdomadaire fiable : il faut au moins {{n}} transactions acceptées sur {{days}} jours (actuellement {{have}}). Les jours ci-dessous restent exacts.",
+    "byWeekday": "Encaissement accepté moyen par jour de la semaine",
+    "byHour": "Transactions acceptées par heure",
+    "busiest": "Jours les plus forts",
+    "quietest": "Jours les plus calmes",
+    "help": "Calculé uniquement sur les transactions acceptées. La moyenne par jour de semaine divise par le nombre de fois où ce jour apparaît dans la période. Les jours sans transaction comptent comme jours calmes.",
+    "perDay": "{{tx}} transactions sur {{n}} jours",
+    "avgPerDay": "Moyenne par jour",
+    "dayTotal": "{{n}} tx"
+  },
+  "profile": {
+    "title": "Profil du commerce",
+    "merchantId": "Identifiant commerçant",
+    "timezone": "Fuseau horaire",
+    "readOnly": "Seul le propriétaire du commerce peut modifier ce profil.",
+    "displayName": "Nom du commerce",
+    "category": "Catégorie d'activité",
+    "operatingDays": "Jours d'ouverture",
+    "monthlyGoal": "Objectif mensuel d'encaissement (DZD)",
+    "monthlyGoalHelp": "Sert à l'alerte « objectif atteint » (80 % et 100 %). Laisser vide pour ne pas suivre d'objectif.",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "saved": "Profil enregistré. Objectif mensuel : {{goal}}.",
+    "errors": {
+      "name": "Le nom du commerce est obligatoire.",
+      "days": "Choisissez au moins un jour d'ouverture.",
+      "goal": "Objectif invalide : saisissez un montant positif en DZD (2 décimales au plus).",
+      "server": "L'enregistrement a échoué. Vérifiez les valeurs et réessayez."
+    }
   }
 }

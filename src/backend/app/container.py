@@ -22,6 +22,7 @@ from app.contexts.alerts.application.manage_alerts import (
 from app.contexts.alerts.infrastructure.sql_alert_repository import SqlAlertRepository
 from app.contexts.analytics.application.get_collections import GetCollectionsSummary
 from app.contexts.analytics.application.get_dashboard import GetDashboard
+from app.contexts.analytics.application.get_insights import GetActivityProfile, GetDeclineRadar
 from app.contexts.identity.application.use_cases import (
     Authenticate,
     GetMe,
@@ -31,6 +32,7 @@ from app.contexts.identity.application.use_cases import (
 from app.contexts.identity.infrastructure.security import Argon2PasswordHasher, JwtTokenService
 from app.contexts.identity.infrastructure.sql_repositories import (
     SqlAccessRepository,
+    SqlAuditLog,
     SqlMerchantRepository,
     SqlUserRepository,
 )
@@ -110,10 +112,15 @@ def get_merchant_repository(db: Session = Depends(get_db)) -> SqlMerchantReposit
     return SqlMerchantRepository(db)
 
 
+def get_audit_log(db: Session = Depends(get_db)) -> SqlAuditLog:
+    return SqlAuditLog(db)
+
+
 def get_update_merchant_profile(
     merchants: SqlMerchantRepository = Depends(get_merchant_repository),
+    audit: SqlAuditLog = Depends(get_audit_log),
 ) -> UpdateMerchantProfile:
-    return UpdateMerchantProfile(merchants)
+    return UpdateMerchantProfile(merchants, audit)
 
 
 # ---- ledger -------------------------------------------------------------------
@@ -139,6 +146,14 @@ def get_collections_summary(
     repo=Depends(get_transaction_repository),
 ) -> GetCollectionsSummary:
     return GetCollectionsSummary(repo)
+
+
+def get_decline_radar(repo=Depends(get_transaction_repository)) -> GetDeclineRadar:
+    return GetDeclineRadar(repo)
+
+
+def get_activity_profile(repo=Depends(get_transaction_repository)) -> GetActivityProfile:
+    return GetActivityProfile(repo)
 
 
 # ---- alerts -------------------------------------------------------------------

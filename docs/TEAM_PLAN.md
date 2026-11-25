@@ -34,7 +34,7 @@ Hours assume a ~14 h working day. Scale them if the event is shorter, and cut fr
 
 ### Phase 1, core modules (≈ 4 h)
 **Person A**
-- [ ] `PATCH /merchant/me`: `UpdateMerchantProfile` use case + `MerchantRepository.save` + audit event
+- [x] `PATCH /merchant/me`: `UpdateMerchantProfile` use case + `MerchantRepository.save` + audit event
       (`identity/application/use_cases.py`, `identity/api/router.py`).
 - [x] `GET /collections/summary?a_from&a_to&b_from&b_to`: status totals for period A and period B, plus
       per-status `compare()` (`analytics/application/`, `analytics/api/router.py`). Integration test: A total equals the sum of the ledger.
@@ -43,7 +43,7 @@ Hours assume a ~14 h working day. Scale them if the event is shorter, and cut fr
 **Person B**
 - [x] Collections page (`features/collections/`): period A vs B pickers, status cards, delta badges,
       "see transactions" deep links (`/transactions?status=…`).
-- [ ] Profile page (`features/merchant/`): show `/merchant/me`, edit form → PATCH, monthly goal input.
+- [x] Profile page (`features/merchant/`): show `/merchant/me`, edit form → PATCH, monthly goal input.
 - [ ] Dashboard: empty state when `total_count == 0`, a skeleton while loading, and a mobile layout check at 375 px.
 - **Exit gate:** modules 01–04 pass the acceptance checklist (bottom of this file).
 
@@ -68,9 +68,10 @@ Hours assume a ~14 h working day. Scale them if the event is shorter, and cut fr
 - **Exit gate:** demo steps 4–6 work live (`docs/demo_runbook.md`).
 
 ### Phase 3, differentiation (≈ 3 h, only after the Phase 2 gate)
-- [ ] A: `analytics/domain/decline_signal.py`, a Beta-Binomial posterior (prior Beta(1, 19) ≈ 5%) giving the
+- [x] A: `analytics/domain/decline_signal.py`, a Beta-Binomial posterior (prior Beta(1, 19) ≈ 5%) giving the
       posterior mean + 90% credible interval, with "insufficient data" below 20 attempts. Endpoint `GET /insights/decline`.
-- [ ] B: Insights page showing decline rate over time with a credible band, sample size, and the "insufficient history" state.
+- [x] A+B: high/low activity periods (mandatory, module 04): `GET /analytics/activity` + dashboard card.
+- [x] B: Insights page (Collection Opportunity Radar): per-channel declined value, credible intervals, sample size, "insufficient data" state.
 - [ ] A (stretch): `solve_for_goal` in the simulator ("+X% volume needed to reach the monthly goal").
 - [ ] B: finish the Arabic strings for new pages, then check keyboard navigation and focus states.
 - **Exit gate:** each insight explains its method, data and limits, and its fallback works.
@@ -109,5 +110,5 @@ Hours assume a ~14 h working day. Scale them if the event is shorter, and cut fr
 - [ ] The 20% collection-drop alert triggers on the seeded hero merchant.
 - [ ] The decline spike alert includes its denominator and baseline.
 - [ ] The +15% simulator result is reproducible and shows its assumptions.
-- [ ] Insights have an insufficient-data fallback.
+- [x] Insights have an insufficient-data fallback.
 - [ ] The six-step demo completes after `make seed` with no manual DB edits.

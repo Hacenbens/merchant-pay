@@ -23,3 +23,11 @@ export type CollectionsSummary = S["CollectionsSummaryOut"];
 
 export const CHANNELS: Channel[] = ["pos", "ecommerce", "mobile_app", "contactless", "bank_transfer"];
 export const STATUSES: TransactionStatus[] = ["accepted", "declined", "cancelled", "refunded"];
+
+export type DeclineRadar = S["DeclineRadarOut"];
+export type DeclineSignal = S["DeclineSignalOut"];
+export type DeclineEstimate = S["DeclineEstimateOut"];
+export type Verdict = S["Verdict"];
+export type Activity = S["ActivityOut"];
+export type MerchantProfile = S["MerchantOut"];
+export type MerchantPatch = S["MerchantPatchIn"];

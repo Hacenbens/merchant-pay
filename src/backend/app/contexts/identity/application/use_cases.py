@@ -1,14 +1,15 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from app.contexts.identity.application.ports import (
     AccessRepository,
+    AuditLog,
     MerchantRepository,
     PasswordHasher,
     TokenService,
     UserRepository,
 )
-from app.contexts.identity.domain.model import Merchant, MerchantAccess, User
-from app.shared.domain.errors import Forbidden, InvalidCredentials, NotFound
+from app.contexts.identity.domain.model import Merchant, MerchantAccess, Role, User
+from app.shared.domain.errors import DomainError, Forbidden, InvalidCredentials, NotFound
 from app.shared.domain.merchant_scope import MerchantScope
 from app.shared.domain.money import Money
 
@@ -63,35 +64,57 @@ class GetMe:
         return Me(user, merchant, self._access.for_user(scope.user_id))
 
 
-class UpdateMerchantProfile:
-    def __init__(self, merchants: MerchantRepository) -> None:
-        self._merchants = merchants
+WEEKDAYS = ("sun", "mon", "tue", "wed", "thu", "fri", "sat")
 
-    def execute(self, merchant_id: str, data: dict) -> Merchant:
-        merchant = self._merchants.get(merchant_id)
+
+@dataclass(frozen=True, slots=True)
+class ProfileChanges:
+    """Only the fields the merchant actually sent; None means "leave unchanged"."""
+
+    display_name: str | None = None
+    category: str | None = None
+    operating_days: tuple[str, ...] | None = None
+    monthly_goal: Money | None = None
+    clear_monthly_goal: bool = False
+
+
+class UpdateMerchantProfile:
+    """Owner-only profile edit. Writes an audit event naming the changed fields (not their values)."""
+
+    def __init__(self, merchants: MerchantRepository, audit: AuditLog) -> None:
+        self._merchants, self._audit = merchants, audit
+
+    def execute(self, scope: MerchantScope, changes: ProfileChanges) -> Merchant:
+        if scope.role != Role.OWNER.value:
+            raise Forbidden("Only the merchant owner can edit the profile")
+        merchant = self._merchants.get(scope.merchant_id)
         if merchant is None:
-            raise Exception("Merchant not found")
-        updates: dict = {}
-        if "display_name" in data:
-            updates["display_name"] = data["display_name"]
-        if "category" in data:
-            updates["category"] = data["category"]
-        if "operating_days" in data:
-            updates["operating_days"] = ",".join(data["operating_days"])
-        if "monthly_goal_centimes" in data:
-            updates["monthly_goal_centimes"] = data["monthly_goal_centimes"]
-        for key, value in updates.items():
-            setattr(merchant, key, value)
-        self._merchants._s.add(merchant)
-        self._merchants._s.commit()
-        self._merchants._s.refresh(merchant)
-        return Merchant(
-            merchant_id=merchant.merchant_id,
-            display_name=merchant.display_name,
-            category=merchant.category,
-            timezone=merchant.timezone,
-            operating_days=tuple(d for d in merchant.operating_days.split(",") if d),
-            monthly_goal=Money(merchant.monthly_goal_centimes)
-        if merchant.monthly_goal_centimes is not None
-        else None,
-        )
+            raise NotFound("Merchant not found")
+
+        updates: dict[str, object] = {}
+        if changes.display_name is not None:
+            name = changes.display_name.strip()
+            if not name:
+                raise DomainError("Display name cannot be empty")
+            updates["display_name"] = name
+        if changes.category is not None:
+            updates["category"] = changes.category.strip()
+        if changes.operating_days is not None:
+            unknown = set(changes.operating_days) - set(WEEKDAYS)
+            if unknown or not changes.operating_days:
+                raise DomainError("Operating days must be a non-empty subset of sun..sat")
+            updates["operating_days"] = tuple(d for d in WEEKDAYS if d in changes.operating_days)
+        if changes.clear_monthly_goal:
+            updates["monthly_goal"] = None
+        elif changes.monthly_goal is not None:
+            if changes.monthly_goal.centimes <= 0:
+                raise DomainError("Monthly goal must be positive")
+            updates["monthly_goal"] = changes.monthly_goal
+
+        if not updates:
+            return merchant
+        updated = replace(merchant, **updates)
+        self._merchants.save(updated)
+        self._audit.record(scope.user_id, "merchant.profile_updated",
+                           f"merchant:{merchant.merchant_id} fields:{','.join(sorted(updates))}")
+        return updated

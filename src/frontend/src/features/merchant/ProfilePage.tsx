@@ -1,92 +1,132 @@
-import { useState, useRef } from "react";
-import { api } from "@/api/client";
+import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { ApiError } from "@/api/client";
+import type { Me, MerchantPatch } from "@/api/types";
+import { Button, Card, ErrorState, Spinner } from "@/components/ui";
+import { useMe, useUpdateProfile } from "@/features/auth/api";
+import { formatMoney, formatWeekday } from "@/lib/format";
 
-export const ProfilePage = () => {
+const DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+type Day = (typeof DAYS)[number];
+const ISO_WEEKDAY: Record<Day, number> = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun: 6 };
+const CATEGORY_SUGGESTIONS = ["Épicerie", "Restauration", "Pharmacie", "Habillement", "Électronique", "Services"];
+
+/** "1 500 000,50" or "1500000.5" -> 150000050 centimes, exactly (no float). null if empty/invalid. */
+export function parseDzdToCentimes(raw: string): number | null | "invalid" {
+  const s = raw.replace(/[\s  ]/g, "").replace(",", ".");
+  if (s === "") return null;
+  const m = /^(\d{1,12})(?:\.(\d{1,2}))?$/.exec(s);
+  if (!m) return "invalid";
+  return Number(m[1]) * 100 + Number((m[2] ?? "").padEnd(2, "0"));
+}
+
+export function ProfilePage() {
+  const me = useMe();
+  if (me.isPending) return <Spinner />;
+  if (me.isError) return <ErrorState onRetry={() => me.refetch()} />;
+  // key: re-initialise the form if the active merchant changes
+  return <ProfileForm key={me.data.merchant.merchant_id} me={me.data} />;
+}
+
+function ProfileForm({ me }: { me: Me }) {
   const { t } = useTranslation();
-  const [name, setName] = useState<string>("");
-  const [category, setCategory] = useState<string>("");
-  const [operatingDays, setOperatingDays] = useState<string>("sun,mon,tue,wed,thu,sat");
-  const [monthlyGoal, setMonthlyGoal] = useState<number | null>(null);
-  const [saving, setSaving] = useState(false);
-  const submitRef = useRef<HTMLFormElement>(null);
+  const m = me.merchant;
+  const save = useUpdateProfile();
+  const readOnly = me.role !== "owner";
+  const [name, setName] = useState(m.display_name);
+  const [category, setCategory] = useState(m.category);
+  const [days, setDays] = useState<Set<string>>(new Set(m.operating_days));
+  const [goal, setGoal] = useState(m.monthly_goal ? m.monthly_goal.amount : "");
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const toggle = (d: Day) => setDays((prev) => {
+    const next = new Set(prev);
+    if (next.has(d)) next.delete(d);
+    else next.add(d);
+    return next;
+  });
+
+  const submit = (e: FormEvent) => {
     e.preventDefault();
-    setSaving(true);
-    try {
-      await api("/merchant/me", {
-        method: "PATCH",
-        body: JSON.stringify({
-          display_name: name,
-          category,
-          operating_days: operatingDays.split(",").filter(Boolean),
-          monthly_goal_centimes: monthlyGoal ? Math.round(monthlyGoal * 100) : null,
-        }),
-      } as RequestInit);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSaving(false);
-    }
+    setFormError(null);
+    const centimes = parseDzdToCentimes(goal);
+    if (!name.trim()) return setFormError(t("profile.errors.name"));
+    if (days.size === 0) return setFormError(t("profile.errors.days"));
+    if (centimes === "invalid" || centimes === 0) return setFormError(t("profile.errors.goal"));
+    const body: MerchantPatch = {
+      display_name: name.trim(),
+      category: category.trim(),
+      operating_days: DAYS.filter((d) => days.has(d)),
+      monthly_goal_centimes: centimes,
+    };
+    save.mutate(body);
   };
 
+  const serverError = save.error instanceof ApiError ? save.error : null;
+  const field = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-600 focus:outline-none disabled:bg-slate-50";
+
   return (
-    <form ref={submitRef} onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1">{t("nav.profile")}</label>
-        <input
-          type="text"
-          value={name || ""}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={t("profile.display_name")}
-          className="w-full rounded border px-3 py-2 focus:outline-none focus:border-primary"
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">{t("profile.category")}</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full rounded border px-3 py-2 focus:outline-none focus:border-primary"
-          >
-            <option value="ecommerce">{t("profile.category.ecommerce")}</option>
-            <option value="mobile_app">{t("profile.category.mobile_app")}</option>
-            <option value="pos">{t("profile.category.pos")}</option>
-            <option value="bank_transfer">{t("profile.category.bank_transfer")}</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">{t("profile.operating_days")}</label>
-          <select
-            value={operatingDays}
-            onChange={(e) => setOperatingDays(e.target.value)}
-            className="w-full rounded border px-3 py-2 focus:outline-none focus:border-primary"
-          >
-            <option value="sun,mon,tue,wed,thu,sat">{t("profile.operating_days.all")}</option>
-            <option value="mon-fri">{t("profile.operating_days.weekdays")}</option>
-            <option value="tue,thu,sat">{t("profile.operating_days.partial")}</option>
-          </select>
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">{t("profile.monthly_goal")}</label>
-        <input
-          type="number"
-          value={monthlyGoal ?? ""}
-          onChange={(e) => setMonthlyGoal(parseFloat(e.target.value) || null)}
-          placeholder={t("profile.monthly_goal_placeholder")}
-          className="w-full rounded border px-3 py-2 focus:outline-none focus:border-primary"
-        />
-      </div>
-      <button
-        type="submit"
-        disabled={saving}
-        className="w-full rounded border px-3 py-2 focus:outline-none focus:border-primary bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {saving ? "Enregistrement…" : t("profile.save")}
-      </button>
-    </form>
+    <div className="max-w-2xl space-y-4">
+      <Card title={t("profile.title")}>
+        <dl className="mb-4 grid grid-cols-2 gap-2 text-xs text-slate-500">
+          <div><dt>{t("profile.merchantId")}</dt><dd className="font-mono text-slate-800">{m.merchant_id}</dd></div>
+          <div><dt>{t("profile.timezone")}</dt><dd className="text-slate-800">{m.timezone}</dd></div>
+        </dl>
+        {readOnly && <p className="mb-3 rounded-lg bg-sky-50 p-2 text-xs text-sky-800">{t("profile.readOnly")}</p>}
+
+        <form onSubmit={submit} className="space-y-4" noValidate>
+          <fieldset disabled={readOnly || save.isPending} className="space-y-4">
+            <label className="block text-sm">
+              <span className="mb-1 block font-medium text-slate-700">{t("profile.displayName")}</span>
+              <input className={field} value={name} maxLength={200} required
+                onChange={(e) => setName(e.target.value)} />
+            </label>
+
+            <label className="block text-sm">
+              <span className="mb-1 block font-medium text-slate-700">{t("profile.category")}</span>
+              <input className={field} value={category} maxLength={100} list="merchant-categories"
+                onChange={(e) => setCategory(e.target.value)} />
+              <datalist id="merchant-categories">
+                {CATEGORY_SUGGESTIONS.map((c) => <option key={c} value={c} />)}
+              </datalist>
+            </label>
+
+            <fieldset>
+              <legend className="mb-1 text-sm font-medium text-slate-700">{t("profile.operatingDays")}</legend>
+              <div className="flex flex-wrap gap-2">
+                {DAYS.map((d) => (
+                  <label key={d} className={`cursor-pointer rounded-lg border px-3 py-1.5 text-sm ${days.has(d)
+                    ? "border-brand-600 bg-brand-50 text-brand-900" : "border-slate-300 text-slate-600"}`}>
+                    <input type="checkbox" className="sr-only" checked={days.has(d)} onChange={() => toggle(d)} />
+                    {formatWeekday(ISO_WEEKDAY[d], "short")}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <label className="block text-sm">
+              <span className="mb-1 block font-medium text-slate-700">{t("profile.monthlyGoal")}</span>
+              <input className={field} value={goal} inputMode="decimal" placeholder="1 500 000"
+                onChange={(e) => setGoal(e.target.value)} />
+              <span className="mt-1 block text-xs text-slate-500">{t("profile.monthlyGoalHelp")}</span>
+            </label>
+          </fieldset>
+
+          {(formError || serverError) && (
+            <p role="alert" className="text-sm text-rose-700">{formError ?? t("profile.errors.server")}</p>
+          )}
+          {save.isSuccess && !save.isPending && (
+            <p role="status" className="text-sm text-emerald-700">
+              {t("profile.saved", { goal: formatMoney(save.data.monthly_goal) })}
+            </p>
+          )}
+          {!readOnly && (
+            <Button type="submit" disabled={save.isPending}>
+              {save.isPending ? t("profile.saving") : t("profile.save")}
+            </Button>
+          )}
+        </form>
+      </Card>
+    </div>
   );
-};
+}

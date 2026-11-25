@@ -11,6 +11,7 @@ import { useAlerts } from "@/features/alerts/api";
 import { SeverityBadge } from "@/features/alerts/SeverityBadge";
 import { isRtl } from "@/i18n";
 import { formatCompactDzd, formatDate, formatMoney, formatNumber, formatPct } from "@/lib/format";
+import { ActivityCard } from "./ActivityCard";
 import { useDashboard } from "./api";
 
 export function DashboardPage() {
@@ -35,6 +36,8 @@ export function DashboardPage() {
       </div>
 
       <Card title={t("dashboard.trend")}><TrendChart d={d} /></Card>
+
+      <ActivityCard />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title={t("dashboard.channels")}><ChannelMix d={d} /></Card>

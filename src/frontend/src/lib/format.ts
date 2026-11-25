@@ -44,3 +44,13 @@ export function toIsoDate(d: Date): string {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
+
+/** Weekday name from an ISO index (0 = Monday), localised. 2026-11-02 is a Monday. */
+export function formatWeekday(isoWeekday: number, style: "long" | "short" = "long"): string {
+  return new Intl.DateTimeFormat(locale(), { weekday: style }).format(new Date(2026, 10, 2 + isoWeekday));
+}
+
+/** A probability/rate already in [0, 1], shown with one decimal. Statistics only, never money. */
+export function formatProbability(p: number): string {
+  return new Intl.NumberFormat(locale(), { style: "percent", maximumFractionDigits: 1 }).format(p);
+}
