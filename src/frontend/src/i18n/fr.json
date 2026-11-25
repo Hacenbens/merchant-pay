@@ -68,6 +68,54 @@
     "empty": "Aucune transaction sur la période A."
   },
   "simulator": {
+    "lab": {
+      "title": "Laboratoire de scénarios",
+      "intro": "Comparez trois scénarios sur la même période de référence, canal par canal : chaque canal garde son propre taux d'acceptation et son panier moyen. Le pont montre ce que chaque hypothèse ajoute. Calcul déterministe, pas une prévision.",
+      "pts": "pts",
+      "scenario": {
+        "conservative": "Prudent",
+        "base": "Central",
+        "ambitious": "Ambitieux"
+      },
+      "lever": {
+        "volume": "Volume",
+        "acceptance": "Acceptation",
+        "ticket": "Panier moyen",
+        "mix": "Report de canal"
+      },
+      "from": "Depuis",
+      "to": "Vers",
+      "share": "Part déplacée (%)",
+      "noShift": "Aucun report",
+      "run": "Comparer les scénarios",
+      "examples": "Valeurs d'exemple : le scénario central reprend l'exemple +15 % du cahier des charges. Modifiez-les.",
+      "invalid": "Valeur numérique invalide dans un scénario.",
+      "error": "Scénario refusé : {{detail}}",
+      "baseline": "Référence du {{from}} au {{to}} : {{collection}} d'encaissements acceptés, {{tx}} transactions initiées, {{declined}} refusés.",
+      "current": "Actuel",
+      "collection": "Encaissement accepté",
+      "delta": "Écart vs actuel",
+      "transactions": "Transactions initiées",
+      "declined": "Valeur refusée estimée",
+      "declinedNote": "suppose que les gains d'acceptation viennent de refus en moins",
+      "goalNeed": "Croissance du volume nécessaire pour l'objectif",
+      "goalNote": "objectif mensuel {{goal}}, ramené à la durée de la période : {{period}}",
+      "goalMet": "Objectif couvert",
+      "bridgeTitle": "Pont de l'écart : {{name}}",
+      "bridgeNote": "Ordre : volume → report de canal → acceptation → panier. Les étapes s'additionnent exactement à l'écart total ; l'ordre change l'attribution, jamais le total.",
+      "capped": "Gain d'acceptation plafonné au taux de refus observé sur : {{channels}} (on ne peut pas récupérer plus de refus qu'il n'y en a).",
+      "byChannel": "Par canal (scénario / actuel)",
+      "volume": "Volume",
+      "acceptance": "Acceptation",
+      "ticket": "Panier",
+      "channelNote": "Ligne grise = période de référence.",
+      "step": {
+        "volume": "Volume",
+        "mix": "Canal",
+        "acceptance": "Acceptation",
+        "ticket": "Panier"
+      }
+    },
     "title": "Simulateur de croissance",
     "intro": "Scénario déterministe : mêmes encaissements de référence, hypothèses explicites. Ce n'est pas une prévision.",
     "volume": "Croissance du volume",

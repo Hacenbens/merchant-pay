@@ -112,3 +112,17 @@ def test_simulator_bounds():
     with pytest.raises(DomainError):
         simulate(Baseline(10, Decimal("0.9"), Money.of(10)),
                  Assumptions(Decimal("0"), acceptance_change=Decimal("0.2")))
+
+
+def test_observed_baseline_makes_growth_exact():
+    """+15 % is exactly +15 % of the ledger total, whatever the rounding of the average ticket."""
+    from tests.factories import A, D, tx
+
+    rows = [tx("a", A, "1000.01"), tx("b", A, "1000.02"), tx("c", A, "1000.02"), tx("d", D, "50.00")]
+    base = Baseline.from_kpis(compute_kpis(rows))
+    assert base.gross_collection == Money.of("3000.05")
+    p = simulate(base, Assumptions(volume_growth=Decimal("0.15")))
+    assert p.projected_collection == Money.of("3450.06")  # 3000.05 x 1.15 = 3450.0575
+    assert p.delta_collection == Money.of("450.01")
+    better = simulate(base, Assumptions(volume_growth=Decimal(0), acceptance_change=Decimal("0.25")))
+    assert better.projected_collection == Money.of("4000.07")  # share 0.75 -> 1.0: x 4/3

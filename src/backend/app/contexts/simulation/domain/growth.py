@@ -13,16 +13,21 @@ class Baseline:
     transaction_count: int
     acceptance_share: Decimal  # accepted / all initiated transactions in the baseline period
     average_ticket: Money
+    # Exact observed accepted total. When present, projections scale it directly, so +15 % is exactly
+    # +15 % of the ledger (a rounded average ticket x count drifts by centimes on large volumes).
+    observed_gross: Money | None = None
 
     @classmethod
     def from_kpis(cls, kpis: KpiSnapshot) -> "Baseline":
         if kpis.total_count == 0 or kpis.average_ticket is None:
             raise DomainError("Baseline period has no accepted activity")
         share = Decimal(kpis.accepted_count) / Decimal(kpis.total_count)
-        return cls(kpis.total_count, share, kpis.average_ticket)
+        return cls(kpis.total_count, share, kpis.average_ticket, kpis.gross_collected)
 
     @property
     def gross_collection(self) -> Money:
+        if self.observed_gross is not None:
+            return self.observed_gross
         return self.average_ticket.scale(Decimal(self.transaction_count) * self.acceptance_share)
 
 
@@ -57,7 +62,11 @@ def simulate(baseline: Baseline, a: Assumptions) -> Projection:
         raise DomainError("Resulting acceptance rate must stay within 0-100%")
     ticket = baseline.average_ticket.scale(1 + a.ticket_change)
     accepted = count * share
-    collection = ticket.scale(accepted)
+    if baseline.observed_gross is not None:
+        factor = (1 + a.volume_growth) * (share / baseline.acceptance_share) * (1 + a.ticket_change)
+        collection = baseline.observed_gross.scale(factor)
+    else:
+        collection = ticket.scale(accepted)
     base = baseline.gross_collection
     delta = collection - base
     pct = Decimal(delta.centimes) / Decimal(base.centimes) if base.centimes else None

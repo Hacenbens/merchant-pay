@@ -260,6 +260,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/simulations/lab": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Scenario Lab */
+        post: operations["scenario_lab_api_v1_simulations_lab_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/customers/overview": {
         parameters: {
             query?: never;
@@ -541,6 +558,11 @@ export interface components {
          * @enum {string}
          */
         BaselineSource: "personal" | "pooled";
+        /**
+         * BridgeStep
+         * @enum {string}
+         */
+        BridgeStep: "volume" | "mix" | "acceptance" | "ticket";
         /** BucketOut */
         BucketOut: {
             /** Accepted Count */
@@ -951,6 +973,130 @@ export interface components {
             refunded_amount: components["schemas"]["MoneyOut"];
             /** By Status */
             by_status: components["schemas"]["StatusTotalOut"][];
+        };
+        /** LabBaselineOut */
+        LabBaselineOut: {
+            period: components["schemas"]["PeriodOut"];
+            /** Initiated */
+            initiated: number;
+            collection: components["schemas"]["MoneyOut"];
+            declined_amount: components["schemas"]["MoneyOut"];
+            /** Channels */
+            channels: components["schemas"]["LabChannelBaselineOut"][];
+        };
+        /** LabBridgeStepOut */
+        LabBridgeStepOut: {
+            step: components["schemas"]["BridgeStep"];
+            amount: components["schemas"]["MoneyOut"];
+        };
+        /** LabChannelBaselineOut */
+        LabChannelBaselineOut: {
+            channel: components["schemas"]["Channel"];
+            /** Initiated */
+            initiated: number;
+            /** Accepted */
+            accepted: number;
+            /** Declined */
+            declined: number;
+            /** Acceptance Share */
+            acceptance_share: number;
+            /** Decline Share */
+            decline_share: number;
+            average_ticket: components["schemas"]["MoneyOut"] | null;
+            accepted_amount: components["schemas"]["MoneyOut"];
+            declined_amount: components["schemas"]["MoneyOut"];
+        };
+        /** LabChannelProjectionOut */
+        LabChannelProjectionOut: {
+            channel: components["schemas"]["Channel"];
+            /** Volume */
+            volume: number;
+            /** Acceptance Share */
+            acceptance_share: number;
+            average_ticket: components["schemas"]["MoneyOut"];
+            collection: components["schemas"]["MoneyOut"];
+            declined_value: components["schemas"]["MoneyOut"];
+        };
+        /** LabIn */
+        LabIn: {
+            /** Baseline From */
+            baseline_from?: string | null;
+            /** Baseline To */
+            baseline_to?: string | null;
+            /** Scenarios */
+            scenarios: components["schemas"]["LabScenarioIn"][];
+        };
+        /** LabOut */
+        LabOut: {
+            baseline: components["schemas"]["LabBaselineOut"];
+            monthly_goal: components["schemas"]["MoneyOut"] | null;
+            goal_for_period: components["schemas"]["MoneyOut"] | null;
+            /** Scenarios */
+            scenarios: components["schemas"]["LabScenarioOut"][];
+        };
+        /** LabScenarioIn */
+        LabScenarioIn: {
+            /** Name */
+            name: string;
+            /**
+             * Volume Growth
+             * @default 0
+             */
+            volume_growth: number | string;
+            /**
+             * Acceptance Change
+             * @default 0
+             */
+            acceptance_change: number | string;
+            /**
+             * Ticket Change
+             * @default 0
+             */
+            ticket_change: number | string;
+            /** Shifts */
+            shifts?: components["schemas"]["LabShiftIn-Input"][];
+        };
+        /** LabScenarioOut */
+        LabScenarioOut: {
+            /** Name */
+            name: string;
+            /** Volume Growth */
+            volume_growth: number;
+            /** Acceptance Change */
+            acceptance_change: number;
+            /** Ticket Change */
+            ticket_change: number;
+            /** Shifts */
+            shifts: components["schemas"]["LabShiftIn-Output"][];
+            /** Transactions */
+            transactions: number;
+            collection: components["schemas"]["MoneyOut"];
+            delta: components["schemas"]["MoneyOut"];
+            /** Delta Pct */
+            delta_pct: number | null;
+            declined_value: components["schemas"]["MoneyOut"];
+            /** Bridge */
+            bridge: components["schemas"]["LabBridgeStepOut"][];
+            /** Channels */
+            channels: components["schemas"]["LabChannelProjectionOut"][];
+            /** Acceptance Capped */
+            acceptance_capped: components["schemas"]["Channel"][];
+            /** Required Volume Growth */
+            required_volume_growth: number | null;
+        };
+        /** LabShiftIn */
+        "LabShiftIn-Input": {
+            from_channel: components["schemas"]["Channel"];
+            to_channel: components["schemas"]["Channel"];
+            /** Share */
+            share: number | string;
+        };
+        /** LabShiftIn */
+        "LabShiftIn-Output": {
+            from_channel: components["schemas"]["Channel"];
+            to_channel: components["schemas"]["Channel"];
+            /** Share */
+            share: string;
         };
         /** LoginIn */
         LoginIn: {
@@ -2010,6 +2156,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SimulationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scenario_lab_api_v1_simulations_lab_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-merchant-id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LabIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LabOut"];
                 };
             };
             /** @description Validation Error */

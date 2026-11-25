@@ -31,6 +31,19 @@ the original sale, so it is never netted against collections.
 - **Insufficient data** whenever either window has < 20 attempts, whatever the probability says.
 - Describes *where* declines concentrate, not *why*: the source has no decline reason.
 
+**Growth simulator exactness.** The baseline keeps the exact accepted total of the period; a projection
+scales that total (`× (1+g) × s'/s × (1+Δt)`), so +15 % is exactly +15 % of the ledger to the centime.
+
+**Scenario Lab (`simulation/domain/scenario_lab.py`)**: deterministic, not a forecast.
+Per channel: n = initiated, s = accepted/initiated, d = declined/initiated, t = accepted amount/accepted
+(so n·s·t is the channel's exact accepted amount). Levers in order: **volume** n×(1+g) → **mix** move a
+share of channel A's volume to B (B keeps its own s, t; B must have accepted activity) → **acceptance**
+s+Δa, assumed to come only from fewer declines, capped per channel at d (capped channels listed) →
+**ticket** t×(1+Δt). Bridge step = difference of consecutive states (each rounded once), so steps sum
+exactly to the total change; the order changes attribution, never the total. Declined value estimate =
+Σ n'·d'·declined ticket. Goal: goal pro-rated to the period (goal × days / 30); collection is linear in
+(1+g), so the required growth is goal_p / collection(g = 0) − 1.
+
 **Merchant Pulse (`analytics/domain/pulse.py`)**: fixed rules, every number is a stored metric.
 | Item | Rule |
 |---|---|

@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/api/client";
-import type { Simulation } from "@/api/types";
+import type { ScenarioLab, ScenarioLabIn, Simulation } from "@/api/types";
 
 export type SimulationInput = {
   baselineFrom: string;
@@ -23,4 +23,10 @@ export const useSimulation = () =>
           ticket_change: i.ticketChange,
         }),
       }),
+  });
+
+export const useScenarioLab = () =>
+  useMutation({
+    mutationFn: (body: ScenarioLabIn) =>
+      api<ScenarioLab>("/simulations/lab", { method: "POST", body: JSON.stringify(body) }),
   });

@@ -7,6 +7,14 @@ from app.contexts.analytics.domain.kpis import KpiSnapshot, compute_kpis
 from app.contexts.identity.domain.model import Merchant
 from app.contexts.ledger.domain.transaction import Transaction
 from app.contexts.simulation.domain.growth import Assumptions, Baseline, Projection, simulate
+from app.contexts.simulation.domain.scenario_lab import (
+    LabAssumptions,
+    LabBaseline,
+    LabProjection,
+    goal_for_period,
+    lab_baseline,
+    project,
+)
 from app.contexts.simulation.domain.scenario_run import ScenarioRun
 from app.shared.domain.date_range import DateRange
 from app.shared.domain.merchant_scope import MerchantScope
@@ -21,6 +29,9 @@ class TransactionReader(Protocol):
 
 class ScenarioRunRepository(Protocol):
     def save(self, run: ScenarioRun) -> None: ...
+
+    def save_lab(self, merchant_id: str, created_by: int, period: DateRange, name: str,
+                 assumptions: LabAssumptions, projection: LabProjection) -> None: ...
 
 
 class MerchantProfileReader(Protocol):
@@ -65,3 +76,29 @@ class RunGrowthSimulation:
         self._scenarios.save(ScenarioRun(scope.merchant_id, scope.user_id, baseline_period,
                                          assumptions, projection))
         return result
+
+
+# ---- Scenario Lab: named, channel-aware scenarios with an exact bridge -------------------------
+@dataclass(frozen=True, slots=True)
+class LabResult:
+    baseline: LabBaseline
+    monthly_goal: Money | None
+    goal_for_period: Money | None
+    scenarios: list[tuple[str, LabProjection]]
+
+
+class RunScenarioLab:
+    def __init__(self, reader: TransactionReader, scenarios: ScenarioRunRepository,
+                 merchants: MerchantProfileReader) -> None:
+        self._reader, self._scenarios, self._merchants = reader, scenarios, merchants
+
+    def execute(self, scope: MerchantScope, period: DateRange,
+                named: list[tuple[str, LabAssumptions]]) -> LabResult:
+        baseline = lab_baseline(self._reader.list_in_period(scope, period), period)
+        merchant = self._merchants.get(scope.merchant_id)
+        goal = merchant.monthly_goal if merchant else None
+        goal_p = goal_for_period(goal, period)
+        results = [(name, project(baseline, a, goal_p)) for name, a in named]
+        for name, p in results:
+            self._scenarios.save_lab(scope.merchant_id, scope.user_id, period, name, p.assumptions, p)
+        return LabResult(baseline, goal, goal_p, results)

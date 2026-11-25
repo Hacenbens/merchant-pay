@@ -5,6 +5,7 @@ import { useFilters } from "@/app/filters";
 import { Button, Card, EmptyState, ErrorState, Spinner } from "@/components/ui";
 import { formatDate, formatMoney, formatNumber, formatPct } from "@/lib/format";
 import { useSimulation } from "./api";
+import { ScenarioLab } from "./ScenarioLab";
 
 const DEFAULTS = { volume: 15, acceptance: 0, ticket: 0 }; // percent, points, percent
 
@@ -107,6 +108,8 @@ export function SimulatorPage() {
       ) : run.data ? (
         <Result r={run.data} />
       ) : <EmptyState>{t("simulator.empty")}</EmptyState>}
+
+      <ScenarioLab />
     </div>
   );
 }

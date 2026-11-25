@@ -52,3 +52,6 @@ export type LoyaltySimulationIn = S["LoyaltySimulationIn"];
 export type LoyaltySimulation = S["LoyaltySimulationOut"];
 export type LoyaltyLedger = S["LoyaltyLedgerOut"];
 export type LoyaltyAccrual = S["LoyaltyAccrualOut"];
+export type ScenarioLab = S["LabOut"];
+export type ScenarioLabIn = S["LabIn"];
+export type LabScenario = S["LabScenarioOut"];

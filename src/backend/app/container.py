@@ -64,7 +64,7 @@ from app.contexts.loyalty.infrastructure.sql_repositories import (
     SqlProgramRepository,
     SqlSimulationRunRepository,
 )
-from app.contexts.simulation.application.run_simulation import RunGrowthSimulation
+from app.contexts.simulation.application.run_simulation import RunGrowthSimulation, RunScenarioLab
 from app.contexts.simulation.infrastructure.sql_scenario_repository import SqlScenarioRunRepository
 from app.db.session import make_engine, make_session_factory
 from app.shared.domain.merchant_scope import MerchantScope
@@ -231,6 +231,14 @@ def get_run_growth_simulation(
     merchants: SqlMerchantRepository = Depends(get_merchant_repository),
 ) -> RunGrowthSimulation:
     return RunGrowthSimulation(transactions, scenarios, merchants)
+
+
+def get_run_scenario_lab(
+    transactions: SqlTransactionRepository = Depends(get_transaction_repository),
+    scenarios: SqlScenarioRunRepository = Depends(get_scenario_repository),
+    merchants: SqlMerchantRepository = Depends(get_merchant_repository),
+) -> RunScenarioLab:
+    return RunScenarioLab(transactions, scenarios, merchants)
 
 
 # ---- customers (loyalty intelligence, win-back) ------------------------------------------------

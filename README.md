@@ -70,7 +70,7 @@ The six required modules from the blueprint, with where each one lives.
 | 03 | Collection engine (status-separated totals, A vs B) | `contexts/analytics` | `features/collections` | ✅ `/collections/summary` + page |
 | 04 | Dynamic dashboard | `contexts/analytics` | `features/dashboard` | ✅ incl. high/low activity periods (`/analytics/activity`) |
 | 05 | Alerts and recommendations | `contexts/alerts` | `features/alerts` | ✅ 4 rules, dedupe, transitions, page, dashboard panel |
-| 06 | Commercial growth simulator (+15%) | `contexts/simulation` | `features/simulator` | ✅ API, scenario audit, page with assumptions |
+| 06 | Commercial growth simulator (+15%) | `contexts/simulation` | `features/simulator` | ✅ API, scenario audit, page with assumptions · Scenario Lab (3 named scenarios, channel mix, exact bridge, goal solver) |
 | ★ | Collection Opportunity Radar (Beta-Binomial decline signal) | `contexts/analytics` | `features/insights` | ✅ |
 | ★ | Merchant Pulse (evidence-based brief on the dashboard) | `contexts/analytics` (`domain/pulse.py`) | `features/dashboard/PulseCard.tsx` | ✅ |
 | ★ | Customer loyalty intelligence (RFM, segments) + win-back radar | `contexts/customers` | `features/customers` | ✅ synthetic pseudonymous fixture only |
@@ -268,6 +268,7 @@ All under `/api/v1`. Every merchant endpoint is scoped server-side by `Depends(g
 | GET | `/alerts?state` | alerts | ✅ |
 | POST | `/alerts/evaluate` · `/alerts/{id}/acknowledge\|resolve` | alerts | ✅ |
 | POST | `/simulations/growth` | simulation | ✅ |
+| POST | `/simulations/lab` | simulation | ✅ conservative / base / ambitious, bridge, goal |
 | GET | `/analytics/activity?date_from&date_to` | analytics | ✅ |
 | GET | `/insights/decline?date_from&date_to` | analytics | ✅ |
 | GET | `/insights/pulse?date_from&date_to` | analytics | ✅ |
