@@ -2,7 +2,7 @@
   "app": { "name": "Merchant Pay", "tagline": "Pilotage intelligent de vos encaissements" },
   "nav": {
     "dashboard": "Tableau de bord", "transactions": "Transactions", "collections": "Encaissements",
-    "alerts": "Alertes", "simulator": "Simulateur", "insights": "Analyses", "profile": "Profil"
+    "alerts": "Alertes", "simulator": "Simulateur", "insights": "Analyses", "profile": "Profil", "customers": "Clients", "loyalty": "Fidélité"
   },
   "auth": {
     "title": "Connexion à votre espace marchand", "email": "Adresse e-mail", "password": "Mot de passe",
@@ -210,6 +210,243 @@
       "declined": "Voir les refus",
       "radar": "Ouvrir le radar",
       "profile": "Définir l'objectif"
+    }
+  },
+  "customers": {
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "customers": "Clients",
+      "winback": "Reconquête"
+    },
+    "window": "Fenêtre d'observation",
+    "days": "{{n}} jours",
+    "daysShort": "{{n}} j",
+    "availability": {
+      "no_customer_identifier": "Analyse clients indisponible : les données de transactions ne contiennent aucun identifiant client. Les indicateurs du commerce restent disponibles normalement.",
+      "insufficient_history": "Historique insuffisant : au moins {{n}} clients identifiés sont nécessaires sur la fenêtre (actuellement {{have}}).",
+      "available": ""
+    },
+    "basis": "Fenêtre du {{from}} au {{to}} · {{customers}} clients éligibles · {{tokenised}} des {{accepted}} transactions acceptées portent un identifiant client ({{share}} de couverture).",
+    "synthetic": "Données synthétiques",
+    "privacy": "Identifiants pseudonymes aléatoires, propres à ce commerce. Aucun nom, téléphone, e-mail ni donnée de carte n'est collecté.",
+    "kpi": {
+      "repeatRate": "Taux de clients récurrents",
+      "repeatBasis": "{{num}} / {{den}} clients ont acheté au moins 2 fois",
+      "repeatHelp": "Clients avec au moins 2 transactions acceptées dans la fenêtre, divisés par les clients ayant au moins 1 transaction acceptée.",
+      "returning": "Clients revenus sur la période",
+      "inPeriod": "du {{from}} au {{to}} · {{value}} encaissés",
+      "returningHelp": "Clients ayant acheté avant la période ET de nouveau pendant la période (période du filtre global).",
+      "new": "Nouveaux clients sur la période",
+      "newValue": "{{value}} encaissés",
+      "newHelp": "Premier achat accepté jamais observé pendant la période.",
+      "atRisk": "Clients à reconquérir",
+      "atRiskValue": "{{atRisk}} à risque + {{lapsed}} perdus · {{value}} encaissés historiquement par les clients à risque",
+      "atRiskHelp": "Selon l'écart entre le silence actuel et le rythme d'achat habituel de chaque client. Bande de risque heuristique, pas une probabilité."
+    },
+    "segmentsTitle": "Segments de clients",
+    "col": {
+      "segment": "Segment",
+      "customers": "Clients",
+      "transactions": "Transactions",
+      "value": "Encaissement accepté historique",
+      "share": "Part",
+      "customer": "Client",
+      "status": "Statut de retour",
+      "recency": "Récence",
+      "recencyHelp": "Jours depuis le dernier achat accepté",
+      "frequency": "Fréquence",
+      "frequencyHelp": "Transactions acceptées dans la fenêtre",
+      "monetary": "Valeur historique",
+      "monetaryHelp": "Encaissement accepté dans la fenêtre : ni un profit ni une valeur à vie",
+      "last": "Dernier achat"
+    },
+    "segment": {
+      "new": "Nouveau",
+      "one_time": "Achat unique",
+      "active": "Actif",
+      "loyal": "Fidèle",
+      "at_risk": "À risque",
+      "lapsed": "Perdu"
+    },
+    "segmentHelp": {
+      "new": "Un seul achat, il y a moins de {{newDays}} jours",
+      "one_time": "Un seul achat, plus ancien que {{newDays}} jours : jamais revenu",
+      "active": "Client récurrent, pas encore fidèle selon les seuils",
+      "loyal": "Au moins {{loyalTx}} achats sur au moins {{loyalSpan}} jours dans la fenêtre",
+      "at_risk": "Silence nettement plus long que son rythme habituel",
+      "lapsed": "Silence très long par rapport à son rythme, et au moins 60 jours"
+    },
+    "valueNote": "Valeur historique = encaissements acceptés passés de ces clients. Ce n'est ni un revenu futur garanti, ni un profit. Les remboursements ne sont pas déduits : ils ne sont pas reliés à la vente d'origine dans ces données.",
+    "monthlyTitle": "Clients actifs par mois : nouveaux et revenus",
+    "monthlyHelp": "Un client compte comme « nouveau » le mois de son premier achat accepté. * = mois incomplet (coupé par la fenêtre ou par la date du jour) : ne pas le lire comme une baisse.",
+    "new": "Nouveaux",
+    "returning": "Revenus",
+    "method": {
+      "title": "Méthode et limites",
+      "data": "Source : transactions acceptées portant un identifiant client pseudonyme. Cet identifiant n'existe pas dans le jeu de données officiel à 7 champs : il est ajouté uniquement au jeu synthétique enrichi.",
+      "rfm": "Récence = jours depuis le dernier achat accepté ; Fréquence et Valeur = transactions et encaissement acceptés sur les {{days}} derniers jours. Les trois restent séparées.",
+      "segments": "Segments ({{version}}) : Nouveau < {{newDays}} j ; Fidèle ≥ {{loyalTx}} achats sur ≥ {{loyalSpan}} jours ; « Valeur élevée » est un simple marqueur (au-dessus du {{q}}e centile de valeur), jamais un segment : dépenser beaucoup n'est pas être fidèle.",
+      "winback": "Reconquête ({{version}}) : écart actuel comparé à l'intervalle médian du client (≥ {{personal}} intervalles), sinon à celui de l'ensemble des clients (≥ {{pooled}} intervalles). À surveiller ≥ {{watch}}×, à risque ≥ {{risk}}× et ≥ {{riskMin}} j, perdu ≥ {{lapsed}}× et ≥ {{lapsedMin}} j.",
+      "limits": "Bandes de risque heuristiques, non calibrées : aucune probabilité de départ n'est affirmée faute de données étiquetées. Un client peut aussi payer en espèces ou sans identifiant."
+    },
+    "tableTitle": "Clients (triés par valeur historique)",
+    "allSegments": "Tous les segments",
+    "allStatuses": "Tous les statuts",
+    "highValueOnly": "Valeur élevée uniquement",
+    "highValue": "Valeur élevée",
+    "noMatch": "Aucun client ne correspond à ces filtres.",
+    "pageInfo": "{{total}} clients · page {{page}} / {{pages}}",
+    "prev": "Précédent",
+    "next": "Suivant",
+    "status": {
+      "normal": "Normal",
+      "watch": "À surveiller",
+      "at_risk": "À risque",
+      "lapsed": "Perdu",
+      "insufficient_history": "Historique insuffisant",
+      "not_repeat": "Pas encore revenu"
+    },
+    "evidence": {
+      "gap": "Dernier achat le {{last}}, il y a {{gap}} jours · {{visits}} jours d'achat observés.",
+      "baseline_personal": "Rythme habituel du client : {{median}} j (médiane de {{n}} intervalles, dispersion {{spread}} j).",
+      "baseline_pooled": "Historique personnel trop court : rythme de référence de l'ensemble des clients, {{median}} j (médiane de {{n}} intervalles, dispersion {{spread}} j).",
+      "ratio": "Silence actuel = {{ratio}} × ce rythme.",
+      "thresholds": "Seuils pour ce client : à surveiller ≥ {{watch}} j, à risque ≥ {{risk}} j, perdu ≥ {{lapsed}} j.",
+      "rule": "Règle {{version}}",
+      "notRepeat": "Un seul achat : aucun rythme établi, rien à comparer.",
+      "noBaseline": "Pas assez d'intervalles, ni personnels ni globaux, pour établir un rythme."
+    },
+    "winback": {
+      "title": "Clients à reconquérir (par priorité)",
+      "intro": "Priorité : à risque, puis à surveiller, puis perdus ; à statut égal, valeur élevée puis valeur historique. Ce sont des suggestions : aucun message n'est envoyé automatiquement.",
+      "showHidden": "Afficher les masqués ({{n}})",
+      "empty": "Aucun client à reconquérir dans cette fenêtre.",
+      "history": "{{value}} encaissés historiquement · {{n}} achats",
+      "recheck": "À revoir le {{date}} (jour où le seuil « à risque » serait atteint).",
+      "mayBeWrong": "Peut être faux si : le client paie autrement (espèces, carte non identifiée), son rythme est saisonnier, ou il a déménagé."
+    },
+    "suggestion": {
+      "service_follow_up": "Prise de contact personnelle",
+      "general_offer": "Offre générale de retour",
+      "no_action_yet": "Pas d'action pour l'instant",
+      "low_priority_offer": "Offre de reconquête, priorité basse"
+    },
+    "suggestionWhy": {
+      "service_follow_up": "Client de valeur élevée dont le silence dépasse nettement son rythme : une vérification de service vaut plus qu'une remise.",
+      "general_offer": "Silence nettement plus long que son rythme habituel.",
+      "no_action_yet": "Silence inhabituel mais pas encore critique : agir trop tôt coûte une remise inutile.",
+      "low_priority_offer": "Silence très long : une offre ne coûte rien si elle n'est pas utilisée, mais n'en attendez pas beaucoup."
+    },
+    "decision": {
+      "dismiss": "Ignoré par vous",
+      "snooze": "Reporté jusqu'au {{date}}",
+      "contacted": "Marqué comme contacté"
+    },
+    "actions": {
+      "contacted": "Marquer contacté",
+      "snooze": "Reporter 7 jours",
+      "dismiss": "Ignorer",
+      "clear": "Annuler la décision",
+      "error": "L'action n'a pas pu être enregistrée."
+    },
+    "detail": "Détail client",
+    "inWindow": "sur {{days}} jours",
+    "firstSeen": "Premier achat",
+    "lifetime": "{{n}} achats acceptés au total",
+    "evidenceTitle": "Preuve du statut de retour",
+    "byStatus": "Toutes ses transactions par statut",
+    "refundNote": "Les remboursements sont affichés à part et ne réduisent pas la valeur historique.",
+    "recent": "Transactions récentes de ce client"
+  },
+  "loyalty": {
+    "title": "Studio fidélité",
+    "hypothetical": "Programme hypothétique",
+    "intro": "Concevez un programme de points et voyez ce qu'il coûterait, et quelle hausse des ventes serait nécessaire pour le payer. Rien n'est envoyé aux clients, aucun point réel n'est émis. Les calculs utilisent uniquement les transactions acceptées des clients identifiés (identifiants pseudonymes synthétiques).",
+    "optional": "facultatif",
+    "rules": {
+      "title": "Règles du programme",
+      "points": "Points par tranche de 100 DZD",
+      "pointValue": "Valeur d'un point (DZD)",
+      "minSpend": "Achat minimum éligible (DZD)",
+      "cap": "Plafond de points par client",
+      "expiry": "Expiration des points (jours)",
+      "budget": "Budget du programme (DZD)"
+    },
+    "assumptions": {
+      "title": "Hypothèses du scénario (les vôtres)",
+      "margin": "Marge brute (%)",
+      "marginHint": "requise pour la contribution",
+      "fixedCost": "Coût fixe de campagne (DZD)",
+      "window": "Période de référence",
+      "uplift": "Hausse des ventes",
+      "redemption": "Taux d'utilisation des points",
+      "examples": "Les valeurs pré-remplies sont des exemples, pas des estimations : remplacez-les par vos propres hypothèses."
+    },
+    "scenario": {
+      "low": "Bas",
+      "base": "Central",
+      "high": "Haut"
+    },
+    "simulate": "Calculer les scénarios",
+    "saveProgram": "Enregistrer comme programme",
+    "saved": "Programme v{{v}} enregistré (pilote à partir du {{from}}).",
+    "ownerOnly": "Seul le propriétaire peut enregistrer le programme ou lancer le pilote.",
+    "unavailable": "Simulation indisponible : aucune transaction de cette période ne porte d'identifiant client. Un programme de fidélité ne peut pas être évalué sans savoir qui revient.",
+    "errors": {
+      "pointValue": "Saisissez une valeur de point positive en DZD.",
+      "amount": "Montant invalide : chiffres et 2 décimales au plus.",
+      "number": "Valeur numérique invalide.",
+      "server": "Le calcul a été refusé : vérifiez les valeurs (marge entre 0 et 100 %, taux entre 0 et 100 %)."
+    },
+    "results": {
+      "title": "Coûts et rentabilité par scénario",
+      "baseline": "Référence du {{from}} au {{to}} : {{sales}} d'encaissements acceptés de clients identifiés ({{tx}} transactions, {{customers}} clients). Le programme rend {{rate}} de l'achat éligible en valeur faciale.",
+      "assumed": "+{{u}} ventes · {{r}} utilisés",
+      "incrementalSales": "Ventes supplémentaires",
+      "incrementalNote": "hypothèse saisie, pas une prévision",
+      "points": "Points émis",
+      "liability": "Engagement en points",
+      "liabilityNote": "valeur faciale de tous les points émis",
+      "rewardCost": "Coût attendu des récompenses",
+      "existing": "dont récompenses sur des ventes déjà acquises",
+      "existingNote": "payées sur ce que les clients auraient acheté de toute façon",
+      "fixedCost": "Coût fixe de campagne",
+      "totalCost": "Coût total",
+      "gross": "Contribution brute des ventes supplémentaires",
+      "net": "Contribution nette du scénario",
+      "netNote": "marge × ventes supplémentaires − coût total ; ce n'est pas un profit comptable",
+      "breakEven": "Hausse des ventes nécessaire pour couvrir les coûts",
+      "breakEvenNote": "au taux d'utilisation de ce scénario",
+      "beDetail": "{{sales}} · ≈ {{tx}} transactions",
+      "be_margin_required": "Saisissez une marge",
+      "be_not_reachable": "Inatteignable : chaque vente en plus coûte plus en récompenses qu'elle ne rapporte en marge",
+      "overBudget": "Dépassement du budget"
+    },
+    "method": {
+      "equations": "Points = arrondi inférieur(achat ÷ 100 DZD) × points par tranche, si achat ≥ minimum, plafonnés par client. Coût = taux d'utilisation × points × valeur du point + coût fixe. Contribution nette = marge × ventes supplémentaires − coût total.",
+      "notForecast": "Un scénario n'est pas une prévision : la hausse des ventes est votre hypothèse. Aucun effet causal n'est démontré sans expérimentation (par ex. un groupe témoin).",
+      "noMargin": "Sans marge saisie, seuls les coûts et l'engagement sont calculés : aucune contribution n'est affichée."
+    },
+    "ledger": {
+      "title": "Registre de points (pilote)",
+      "intro": "Rejoue les transactions passées sous le programme enregistré pour voir les points qui auraient été gagnés. Aucun point réel n'est émis.",
+      "accrue": "Lancer le pilote",
+      "noProgram": "Aucun programme enregistré : enregistrez des règles pour lancer un pilote.",
+      "accrued": "{{earn}} gains et {{expire}} expirations ajoutés ; {{existing}} écritures déjà présentes (relancer ne crée pas de doublon).",
+      "version": "Version · début",
+      "earned": "Points gagnés",
+      "expired": "Points expirés",
+      "liability": "Engagement restant",
+      "overBudget": "L'engagement dépasse le budget de {{over}}.",
+      "empty": "Aucune écriture pour l'instant : lancez le pilote.",
+      "rules": "Écritures immuables avec clé d'idempotence (une seule par transaction et version). Le solde est toujours une somme d'écritures. Les remboursements n'annulent pas de points : ils ne sont pas reliés à la vente d'origine dans ces données.",
+      "kind": {
+        "earn": "Gain",
+        "expire": "Expiration",
+        "redeem": "Utilisation",
+        "reverse": "Annulation",
+        "adjust": "Ajustement"
+      }
     }
   }
 }

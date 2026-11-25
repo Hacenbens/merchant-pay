@@ -73,6 +73,8 @@ The six required modules from the blueprint, with where each one lives.
 | 06 | Commercial growth simulator (+15%) | `contexts/simulation` | `features/simulator` | ✅ API, scenario audit, page with assumptions |
 | ★ | Collection Opportunity Radar (Beta-Binomial decline signal) | `contexts/analytics` | `features/insights` | ✅ |
 | ★ | Merchant Pulse (evidence-based brief on the dashboard) | `contexts/analytics` (`domain/pulse.py`) | `features/dashboard/PulseCard.tsx` | ✅ |
+| ★ | Customer loyalty intelligence (RFM, segments) + win-back radar | `contexts/customers` | `features/customers` | ✅ synthetic pseudonymous fixture only |
+| ★ | Loyalty Rewards Studio: programme rules, offer simulator (break-even), pilot points ledger | `contexts/loyalty` | `features/loyalty` | ✅ hypothetical programme, synthetic data |
 | — | Import, provenance, demo seed | `contexts/ledger`, `app/seed` | — | ✅ |
 
 Backend paths are relative to `src/backend/app/`; frontend paths to `src/frontend/src/`.
@@ -186,6 +188,8 @@ src/backend/
 | **analytics** | `kpis.py`: `compute_kpis`, `channel_mix`, `collection_series` · `period_comparison.py` · `activity.py` · `decline_signal.py` + `beta.py` | `get_dashboard.py`: `GetDashboard` · `get_collections.py`: `GetCollectionsSummary` · `get_insights.py`: `GetDeclineRadar`, `GetActivityProfile` | (reuses the ledger SQL repository) | `router.py`: `/analytics/dashboard` · `collections_router.py` endpoints: `/collections/summary` |
 | **alerts** | `alert.py`: `Alert` state machine · `rules.py`: `CollectionDropRule`, `DeclineSpikeRule`, `InactivityRule`, `GoalReachedRule` | `ports.py`, `evaluate_alerts.py`, `manage_alerts.py` | `sql_alert_repository.py` (dedupe on `dedupe_key`) | `router.py`: `/alerts` |
 | **simulation** | `growth.py`: `Baseline`, `Assumptions`, `simulate` · `scenario_run.py` | `run_simulation.py` | `sql_scenario_repository.py` (audit row) | `router.py`: `/simulations/growth` |
+| **loyalty** | `program.py`: rules, points · `simulator.py`: scenarios, break-even · `ledger.py`: idempotent accrual, summary | `use_cases.py`: programme, simulation, `AccruePilot`, ledger | `sql_repositories.py` (unique idempotency key) | `router.py`: `/loyalty/*` |
+| **customers** | `profiles.py`: RFM, segments, coverage · `winback.py`: return-gap baselines · `reengagement.py`: priority, suggestions, decisions | `use_cases.py`: overview, list, detail, re-engagement, `RecordDecision` | `sql_decision_repository.py` (append-only) | `router.py`: `/customers/*` |
 
 ⬜ marks files to create, listed with their exact paths in [`docs/TEAM_PLAN.md`](docs/TEAM_PLAN.md).
 `TODO(Person A)` comments in the code mark the same spots.
@@ -243,6 +247,8 @@ src/frontend/
 | `/simulator` | `features/simulator/SimulatorPage.tsx` | `POST /simulations/growth` |
 | `/insights` | `features/insights/InsightsPage.tsx` | `GET /insights/decline` |
 | `/profile` | `features/merchant/ProfilePage.tsx` | `GET /merchant/me` · `PATCH /merchant/me` |
+| `/customers` | `features/customers/CustomersPage.tsx` (tabs, drawer) | `/customers/*` |
+| `/loyalty` | `features/loyalty/LoyaltyPage.tsx` | `/loyalty/*` |
 
 ---
 
@@ -265,6 +271,15 @@ All under `/api/v1`. Every merchant endpoint is scoped server-side by `Depends(g
 | GET | `/analytics/activity?date_from&date_to` | analytics | ✅ |
 | GET | `/insights/decline?date_from&date_to` | analytics | ✅ |
 | GET | `/insights/pulse?date_from&date_to` | analytics | ✅ |
+| GET | `/customers/overview?window_days&date_from&date_to` | customers | ✅ |
+| GET | `/customers?segment&status&high_value&page&size&window_days` | customers | ✅ |
+| GET | `/customers/reengagement?include_hidden&window_days` | customers | ✅ |
+| GET | `/customers/{token}?window_days` | customers | ✅ (another merchant's token → 404) |
+| POST | `/customers/{token}/decisions` | customers | ✅ dismiss / snooze / contacted / clear, audited |
+| GET / PUT | `/loyalty/program` | loyalty | ✅ PUT owner-only, versioned, audited |
+| POST / GET | `/loyalty/simulations` | loyalty | ✅ low/base/high + break-even; every run stored |
+| POST | `/loyalty/ledger/accrue` | loyalty | ✅ owner-only pilot, idempotent |
+| GET | `/loyalty/ledger?page&size` | loyalty | ✅ summary + entries (masked customers) |
 
 ---
 
@@ -329,6 +344,11 @@ Run these from the repository root.
 - Synthetic data only. There is no live payment processing and no SATIM or bank connectivity.
 - No card PAN, CVV, PIN or OTP is ever stored.
 - Every row keeps its `source_batch_id`, and synthetic rows are tagged `data_origin=synthetic_demo`.
+- **Customer data.** The official 7-field schema has no customer identifier. An optional `customer_token`
+  exists only in the enriched synthetic fixture (`app/seed/customer_fixture.py`): random, pseudonymous,
+  merchant-scoped, never derived from card data. The importer refuses card-like values (digit-only or
+  12+ digit runs). No names, phones, emails, PAN, CVV, PIN or OTP. Without tokens the customer pages
+  say "unavailable" and merchant analytics continue normally. Audit entries mask tokens (`••••XXXX`).
 - Imports are all-or-nothing, with a row-level error report.
 - Tenant scope comes from the server-side access mapping, never from a client-supplied ID.
   Another merchant's record returns 404.

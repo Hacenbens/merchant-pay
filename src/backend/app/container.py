@@ -27,6 +27,14 @@ from app.contexts.analytics.application.get_insights import (
     GetDeclineRadar,
     GetPulse,
 )
+from app.contexts.customers.application.use_cases import (
+    GetCustomer,
+    GetCustomerOverview,
+    GetReengagement,
+    ListCustomers,
+    RecordDecision,
+)
+from app.contexts.customers.infrastructure.sql_decision_repository import SqlDecisionRepository
 from app.contexts.identity.application.use_cases import (
     Authenticate,
     GetMe,
@@ -43,6 +51,19 @@ from app.contexts.identity.infrastructure.sql_repositories import (
 )
 from app.contexts.ledger.application.queries import GetTransaction, SearchTransactions
 from app.contexts.ledger.infrastructure.sql_transaction_repository import SqlTransactionRepository
+from app.contexts.loyalty.application.use_cases import (
+    AccruePilot,
+    GetLedger,
+    GetProgram,
+    ListSimulations,
+    RunLoyaltySimulation,
+    SaveProgram,
+)
+from app.contexts.loyalty.infrastructure.sql_repositories import (
+    SqlLedgerRepository,
+    SqlProgramRepository,
+    SqlSimulationRunRepository,
+)
 from app.contexts.simulation.application.run_simulation import RunGrowthSimulation
 from app.contexts.simulation.infrastructure.sql_scenario_repository import SqlScenarioRunRepository
 from app.db.session import make_engine, make_session_factory
@@ -210,3 +231,74 @@ def get_run_growth_simulation(
     merchants: SqlMerchantRepository = Depends(get_merchant_repository),
 ) -> RunGrowthSimulation:
     return RunGrowthSimulation(transactions, scenarios, merchants)
+
+
+# ---- customers (loyalty intelligence, win-back) ------------------------------------------------
+def get_decision_repository(db: Session = Depends(get_db)) -> SqlDecisionRepository:
+    return SqlDecisionRepository(db)
+
+
+def get_customer_overview_uc(repo=Depends(get_transaction_repository)) -> GetCustomerOverview:
+    return GetCustomerOverview(repo)
+
+
+def get_list_customers_uc(repo=Depends(get_transaction_repository)) -> ListCustomers:
+    return ListCustomers(repo)
+
+
+def get_customer_detail_uc(repo=Depends(get_transaction_repository),
+                           decisions=Depends(get_decision_repository)) -> GetCustomer:
+    return GetCustomer(repo, decisions)
+
+
+def get_reengagement_uc(repo=Depends(get_transaction_repository),
+                        decisions=Depends(get_decision_repository)) -> GetReengagement:
+    return GetReengagement(repo, decisions)
+
+
+def get_record_decision_uc(repo=Depends(get_transaction_repository),
+                           decisions=Depends(get_decision_repository),
+                           audit=Depends(get_audit_log)) -> RecordDecision:
+    return RecordDecision(repo, decisions, audit)
+
+
+# ---- loyalty (programme, simulator, pilot ledger) ----------------------------------------------
+def get_program_repository(db: Session = Depends(get_db)) -> SqlProgramRepository:
+    return SqlProgramRepository(db)
+
+
+def get_ledger_repository(db: Session = Depends(get_db)) -> SqlLedgerRepository:
+    return SqlLedgerRepository(db)
+
+
+def get_simulation_run_repository(db: Session = Depends(get_db)) -> SqlSimulationRunRepository:
+    return SqlSimulationRunRepository(db)
+
+
+def get_loyalty_program_uc(programs=Depends(get_program_repository)) -> GetProgram:
+    return GetProgram(programs)
+
+
+def get_save_loyalty_program_uc(programs=Depends(get_program_repository),
+                                audit=Depends(get_audit_log)) -> SaveProgram:
+    return SaveProgram(programs, audit)
+
+
+def get_run_loyalty_simulation_uc(repo=Depends(get_transaction_repository),
+                                  runs=Depends(get_simulation_run_repository)) -> RunLoyaltySimulation:
+    return RunLoyaltySimulation(repo, runs)
+
+
+def get_list_loyalty_simulations_uc(runs=Depends(get_simulation_run_repository)) -> ListSimulations:
+    return ListSimulations(runs)
+
+
+def get_accrue_pilot_uc(programs=Depends(get_program_repository), ledger=Depends(get_ledger_repository),
+                        repo=Depends(get_transaction_repository),
+                        audit=Depends(get_audit_log)) -> AccruePilot:
+    return AccruePilot(programs, ledger, repo, audit)
+
+
+def get_ledger_uc(programs=Depends(get_program_repository),
+                  ledger=Depends(get_ledger_repository)) -> GetLedger:
+    return GetLedger(programs, ledger)

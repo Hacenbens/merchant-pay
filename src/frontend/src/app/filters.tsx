@@ -10,7 +10,7 @@ type Ctx = Filters & { setFilters: (patch: Partial<Filters>) => void; setLastDay
 const FilterContext = createContext<Ctx | null>(null);
 
 /** VITE_DEMO_TODAY freezes "today" for a reproducible jury demo (data ends 2026-11-20). */
-function today(): Date {
+export function today(): Date {
   const frozen = import.meta.env.VITE_DEMO_TODAY as string | undefined;
   return frozen ? new Date(`${frozen}T00:00:00`) : new Date();
 }

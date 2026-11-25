@@ -5,9 +5,11 @@ from app.config import get_settings
 from app.contexts.alerts.api.router import router as alerts_router
 from app.contexts.analytics.api.router import collections_router, insights_router
 from app.contexts.analytics.api.router import router as analytics_router
+from app.contexts.customers.api.router import router as customers_router
 from app.contexts.identity.api.router import router as identity_router
 from app.contexts.identity.infrastructure.login_throttle import LoginThrottle
 from app.contexts.ledger.api.router import router as ledger_router
+from app.contexts.loyalty.api.router import router as loyalty_router
 from app.contexts.simulation.api.router import router as simulation_router
 from app.shared.api.errors import register_error_handlers
 
@@ -29,6 +31,8 @@ def create_app() -> FastAPI:
     api.include_router(insights_router)
     api.include_router(alerts_router)
     api.include_router(simulation_router)
+    api.include_router(customers_router)
+    api.include_router(loyalty_router)
     app.include_router(api)
 
     @app.get("/health", tags=["ops"])

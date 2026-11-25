@@ -3,6 +3,7 @@
 Infrastructure readers (xlsx/csv) are responsible only for mapping headers to these keys.
 """
 
+import re
 from collections.abc import Mapping
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
@@ -15,6 +16,9 @@ from app.shared.domain.money import Money
 REQUIRED_FIELDS = (
     "transaction_id", "merchant_id", "occurred_at", "amount", "channel", "status", "category",
 )
+OPTIONAL_FIELDS = ("customer_token",)
+_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
+_LONG_DIGIT_RUN = re.compile(r"\d{12,}")
 _MAX_AMOUNT = Decimal("100000000")  # sanity bound only; NOT a business ceiling
 _DATETIME_FORMATS = (
     "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d",
@@ -46,6 +50,18 @@ def _parse_amount(value: object) -> Money:
     return Money.of(amount)
 
 
+def parse_customer_token(value: object) -> str | None:
+    """Pseudonymous token or None. Refuses anything that could be a card/account number."""
+    if value is None or str(value).strip() == "":
+        return None
+    token = str(value).strip()
+    if not _TOKEN_RE.match(token):
+        raise ValueError("customer_token must be 8-64 characters of [A-Za-z0-9_-]")
+    if not any(c.isalpha() for c in token) or _LONG_DIGIT_RUN.search(token):
+        raise ValueError("customer_token looks like a card or account number; use a random token")
+    return token
+
+
 def parse_row(
     raw: Mapping[str, object], row_number: int, *, data_origin: DataOrigin
 ) -> tuple[Transaction | None, list[RowError]]:
@@ -67,6 +83,7 @@ def parse_row(
     amount = attempt("amount", _parse_amount)
     channel = attempt("channel", lambda v: Channel.parse(str(v)))
     status = attempt("status", lambda v: TransactionStatus.parse(str(v)))
+    customer_token = attempt("customer_token", parse_customer_token) if "customer_token" in raw else None
     if errors:
         return None, errors
 
@@ -79,4 +96,5 @@ def parse_row(
         status=status,
         category=str(raw["category"]).strip(),
         data_origin=data_origin,
+        customer_token=customer_token,
     ), []

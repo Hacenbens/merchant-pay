@@ -12,9 +12,12 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 
+from app.seed.customer_fixture import assign_customers
+
 PERIOD_START = date(2026, 5, 1)
 PERIOD_END = date(2026, 11, 20)  # inclusive, matches the challenge workbook coverage
 ANOMALY_START = PERIOD_END - timedelta(days=13)
+DRIFT_START = ANOMALY_START - timedelta(days=7)  # planted: some regulars stop returning
 
 CHANNELS = [("TPE / POS", 0.40), ("E-commerce", 0.25), ("Mobile App", 0.20),
             ("Contactless / NFC", 0.10), ("Bank Transfer", 0.05)]
@@ -31,10 +34,11 @@ class DemoMerchant:
     ticket_median: float
     monthly_goal_centimes: int
     planted_anomaly: bool
+    customer_seed: int | None = None  # enriched pseudonymous customer fixture (synthetic only)
 
 
 HERO = DemoMerchant("M-DEMO-01", "Épicerie Démo Boumerdès", "Épicerie", 42, 12, 3200.0,
-                    150_000_000, True)
+                    150_000_000, True, customer_seed=4242)
 SECOND = DemoMerchant("M-DEMO-02", "Restaurant Démo", "Restauration", 43, 4, 2500.0,
                       30_000_000, False)
 DEMO_MERCHANTS = (HERO, SECOND)
@@ -45,6 +49,21 @@ def _pick(rng: random.Random, weighted: list[tuple[str, float]]) -> str:
 
 
 def generate_rows(m: DemoMerchant) -> Iterator[tuple[int, dict[str, object]]]:
+    rows = list(_ledger_rows(m))
+    if m.customer_seed is not None:  # separate RNG: the ledger above is byte-for-byte unchanged
+        assign_customers([r for _, r in rows], m.customer_seed, PERIOD_START, PERIOD_END, DRIFT_START)
+    yield from rows
+
+
+def customer_population(m: DemoMerchant):
+    """Re-derive the fixture population (ground truth for inspection/tests; never stored)."""
+    if m.customer_seed is None:
+        return []
+    rows = [r for _, r in _ledger_rows(m)]
+    return assign_customers(rows, m.customer_seed, PERIOD_START, PERIOD_END, DRIFT_START)
+
+
+def _ledger_rows(m: DemoMerchant) -> Iterator[tuple[int, dict[str, object]]]:
     rng = random.Random(m.seed)
     n, day = 0, PERIOD_START
     while day <= PERIOD_END:

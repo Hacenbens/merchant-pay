@@ -26,6 +26,7 @@ def _to_domain(row: TransactionRow) -> Transaction:
         category=row.category,
         data_origin=DataOrigin(row.data_origin),
         source_batch_id=row.source_batch_id,
+        customer_token=row.customer_token,
     )
 
 
@@ -91,6 +92,7 @@ class SqlTransactionRepository:
             transaction_id=t.transaction_id, merchant_id=t.merchant_id, occurred_at=t.occurred_at,
             amount_centimes=t.amount.centimes, channel=t.channel.value, status=t.status.value,
             category=t.category, data_origin=t.data_origin.value, source_batch_id=batch.batch_id,
+            customer_token=t.customer_token,
         ) for t in transactions)
         self._s.flush()
 

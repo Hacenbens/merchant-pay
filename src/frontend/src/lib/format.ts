@@ -54,3 +54,7 @@ export function formatWeekday(isoWeekday: number, style: "long" | "short" = "lon
 export function formatProbability(p: number): string {
   return new Intl.NumberFormat(locale(), { style: "percent", maximumFractionDigits: 1 }).format(p);
 }
+
+export function formatMonth(isoDate: string): string {
+  return new Intl.DateTimeFormat(locale(), { month: "short", year: "2-digit" }).format(new Date(`${isoDate}T00:00:00`));
+}

@@ -46,6 +46,8 @@ flowchart LR
 | analytics | core | KPIs, collections, comparisons | `compute_kpis`, `collection_series`, `compare`, `GetDashboard` |
 | alerts | core | rules, alert lifecycle | `Alert` aggregate, `AlertRule` strategies |
 | simulation | core | growth what-if | `Baseline`, `Assumptions`, `simulate` |
+| loyalty | supporting | hypothetical programme versions, offer simulator, pilot points ledger | `ProgramRules`, `simulate`, `break_even`, `plan_accrual`, `LedgerEntry` |
+| customers | supporting | pseudonymous customer analytics, win-back decisions (reads ledger via `TransactionReader`) | `build_book`, `CustomerProfile`, `return_status`, `reengagement_list`, `RecordDecision` |
 
 ### Context map
 Arrows mean "depends on". Analytics and alerts *conform* to the ledger's published `Transaction`

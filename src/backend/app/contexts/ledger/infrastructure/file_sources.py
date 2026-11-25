@@ -22,6 +22,8 @@ HEADER_ALIASES: dict[str, str] = {
     "canaldepaiement": "channel", "paymentmethod": "channel",
     "status": "status", "statut": "status", "transactionstatus": "status",
     "category": "category", "merchantcategory": "category", "categorie": "category",
+    # optional, enriched data only. Deliberately NOT aliased from "customer id"-like headers.
+    "customertoken": "customer_token",
 }
 
 Row = tuple[int, dict[str, object]]
